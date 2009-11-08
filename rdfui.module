@@ -37,17 +37,29 @@ function rdfui_menu() {
       );
     }*/
   //}
-  foreach (node_type_get_types() as $type) {
-      $items['admin/structure/types/manage' . $type . 'rdf'] = array(
-        'title' => 'Manage RDF mappings',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('rdfui_admin_rdf_overview_form', 'article'),
-        'access arguments' => array('administer RDF CCK mappings'),
-        //'file' => 'includes/content.admin.inc',
-        'type' => MENU_LOCAL_TASK,
-        'weight' => 1,
-      );
-  }
+  
+  // Create tabs for all possible bundles.
+  foreach (entity_get_info() as $obj_type => $info) {
+    if ($info['fieldable']) {
+      foreach ($info['bundles'] as $bundle_name => $bundle_info) {
+        if (isset($bundle_info['admin'])) {
+          // Extract informations from the bundle description.
+          $path = $bundle_info['admin']['path'];
+          $bundle_arg = isset($bundle_info['admin']['bundle argument']) ? $bundle_info['admin']['bundle argument'] : $bundle_name;
+          $access = array_intersect_key($bundle_info['admin'], drupal_map_assoc(array('access callback', 'access arguments')));
+          $instance_position = count(explode('/', $path)) + 1;
+          
+          $items["$path/rdf"] = array(
+            'title' => 'Manage RDF Mappings',
+            'load arguments' => array($obj_type, $bundle_arg),
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('rdfui_admin_rdf_overview_form', $obj_type, $bundle_arg, $instance_position),
+            'type' => MENU_LOCAL_TASK
+          ) + $access;        
+        }
+      }
+    }
+  }     
   
   return $items;
 }
@@ -58,8 +70,13 @@ function rdfui_menu() {
  * Allows the content type to be mapped to a RDF class and
  * fields to be mapped to RDF properties.
  */
-function rdfui_admin_rdf_overview_form(&$form_state, $type_name) {
-  //print('Worked' . $type_name);
-  //print_r($type_name);
-  //print_r($type);
+function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, $instance) {
+  
+  $form['textfield'] = array(
+    '#type' => 'textfield',
+    '#title' => 'title'
+  );
+  
+  return $form;
 }
+
