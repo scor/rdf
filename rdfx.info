@@ -1,0 +1,7 @@
+; $Id: $
+name = RDFx
+description = 
+package = RDF
+version = VERSION
+core = 7.x
+files[] = rdfx.module
