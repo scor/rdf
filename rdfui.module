@@ -1,0 +1,65 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * User interface for RDF.
+ */
+
+/**
+ * Implementation of hook_permission().
+ */
+function rdfui_permission() {
+  return array('administer RDF CCK mappings' => 'Change the RDF mappings for types and fields');
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function rdfui_menu() {
+  $items = array();
+  
+  // Make sure this doesn't fire until content_types is working,
+  // needed to avoid errors on initial installation.
+  
+  //if (!defined('MAINTENANCE_MODE')) {
+    /*foreach (node_type_get_types() as $type) {
+      $type_url_str = $content_type['url_str'];
+      $items['admin/structure/types/manage/'. $type_url_str .'/rdf'] = array(
+        'title' => 'Manage RDF mappings',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('rdfcck_admin_rdf_overview_form', $type_name),
+        'access arguments' => array('administer RDF CCK mappings'),
+        //'file' => 'includes/content.admin.inc',
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 1,
+      );
+    }*/
+  //}
+  foreach (node_type_get_types() as $type) {
+      $items['admin/structure/types/manage' . $type . 'rdf'] = array(
+        'title' => 'Manage RDF mappings',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('rdfui_admin_rdf_overview_form', 'article'),
+        'access arguments' => array('administer RDF CCK mappings'),
+        //'file' => 'includes/content.admin.inc',
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 1,
+      );
+  }
+  
+  return $items;
+}
+
+/**
+ * Menu callback; listing of field RDF mappings for a content type.
+ *
+ * Allows the content type to be mapped to a RDF class and
+ * fields to be mapped to RDF properties.
+ */
+function rdfui_admin_rdf_overview_form(&$form_state, $type_name) {
+  //print('Worked' . $type_name);
+  //print_r($type_name);
+  //print_r($type);
+}

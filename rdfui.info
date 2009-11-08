@@ -1,0 +1,7 @@
+; $Id: $
+name = RDF UI
+description = 
+package = RDF
+version = VERSION
+core = 7.x
+files[] = rdfui.module
