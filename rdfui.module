@@ -80,3 +80,63 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, 
   return $form;
 }
 
+/**
+ *  Implementation of hook_form_FORM_ID_alter().
+ */
+
+function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  
+  $field_name = $form['#field']['field_name'];
+  $instance = $form['#fields'][$field_name]['instance'];
+  $label = isset($instance['label']) ? $instance['label'] : $instance['field_name'];
+  $object_type = $instance['object_type'];
+  
+  $mapping = rdf_mapping_load($object_type, $instance['bundle']);
+  
+  $form['rdf'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('@label RDF Mapping', array('@label' => $label)),
+  );
+  
+  $form['rdf']['rdf_class'] = array(
+    '#type' => 'textarea',
+    '#title' => 'RDF Class',
+    '#default_value' => empty($mapping[$field_name]['predicates']) ? '' : implode("\n",$mapping[$field_name]['predicates']),
+    '#description' => t('Enter the mapping for @label here.', array('@label' => $label)),
+  );
+  
+  $form['submit']['#weight'] = 1;
+  
+  // add submit and validate handlers
+  $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_field_ui_field_edit_form_validate'));
+  $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_field_ui_field_edit_form_submit'));
+  
+
+}
+
+function rdfui_form_field_ui_field_edit_form_validate($form, &$form_state) {
+  // validate
+
+}
+
+function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
+  
+  
+  $field_name = $form['#field']['field_name'];
+  $instance = $form['#fields'][$field_name]['instance'];
+  $object_type = $instance['object_type'];
+  
+  $mapping = rdf_mapping_load($object_type);
+    
+  $mapping[$field_name]['predicates'] = explode("\n",$form_state['values']['rdf_class']);
+  
+  $mapping_info = array(
+    'mapping' => $mapping,
+    'type' => $object_type,
+    'bundle' => $instance['bundle'] // TODO: is this right?
+  );
+  
+  rdf_mapping_save($mapping_info);
+  
+}
+ 
