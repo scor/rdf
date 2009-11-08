@@ -1,0 +1,19 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * User interface for RDF.
+ */
+
+/**
+ * Implementation of hook_permission().
+ */
+function rdfx_permission() {
+  return array('administer RDF CCK mappings' => 'Change the RDF mappings for types and fields');
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
