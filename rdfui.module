@@ -87,29 +87,8 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
     '#title' => t('@label RDF Mapping', array('@label' => $label)),
   );
   
-  $form['rdf']['predicates'] = array(
-    '#type' => 'textarea',
-    '#title' => 'RDF Predicates',
-    '#default_value' => empty($mapping[$field_name]['predicates']) ? '' : implode("\n",$mapping[$field_name]['predicates']),
-    '#description' => t('Enter the predicate mappings for @label here. Predicates should be listed in CURIE syntax, with the vocabulary namespace and predicate. For example, foaf:name.', array('@label' => $label)),
-  );
-  
-  // @todo Possibly autocomplete the builtin xsd datatypes, but do not restrict to xsd datatypes.
-  $form['rdf']['datatype'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Datatype',
-    '#autocomplete_path' => 'admin/config/rdfui/datatype/autocomplete',
-    '#default_value' => empty($mapping[$field_name]['datatype']) ? '' : $mapping[$field_name]['datatype'],
-    '#description' => t('If there is a datatype for @label, enter it here. You can use !link or other dataypes.', array('@label' => $label, '!link' => l('XML Schema datatypes', 'http://www.w3.org/TR/2004/REC-rdf-mt-20040210/#dtype_interp'))), 
-  );
-  
-  $form['rdf']['type'] = array(
-    '#type' => 'select',
-    '#title' => 'Attribute Type',
-    '#default_value' => empty($mapping[$field_name]['type']) ? 'property' : $mapping[$field_name]['type'],
-    '#description' => t('If a field contains a literal, such as a string or an integer, then the property attribute should be used. If it contains a url or node reference, the !rel or !rev attribute should be used.', array('@label' => $label, '!rel' => l('rel','http://www.w3.org/TR/html401/struct/links.html#adef-rel'), '!rev' => l('rev','http://www.w3.org/TR/html401/struct/links.html#adef-rev'))),
-    '#options' => array('property'=>'property', 'rel'=>'rel', 'rev'=>'rev'),
-  );
+  // add the predicate, datatype, etc fields
+  rdfui_field_form($form['rdf'], $mapping, $field_name, $label);
   
   $form['submit']['#weight'] = 1;
   
@@ -118,6 +97,24 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_field_ui_field_edit_form_submit'));
   
 
+}
+
+function rdfui_form_node_type_form_alter(&$form, &$form_state) {
+  
+  $instance = field_info_instance('node', 'title', $form['#node_type']->type);
+  $mapping = rdf_mapping_load($instance['object_type'], $instance['bundle']);
+  
+  $form['rdf'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'RDF Title Settings',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings'
+  );
+  
+  // add the predicate, datatype, etc fields
+  rdfui_field_form($form['rdf'], $mapping, 'title', $instance['label']);
+  
 }
 
 function rdfui_form_field_ui_field_edit_form_validate($form, &$form_state) {
@@ -184,5 +181,34 @@ function rdfui_datatype_autocomplete($string) {
   }  
   
   drupal_json_output($matches);
+}
+
+function rdfui_field_form(&$form, $mapping, $field_name, $label) {
+  
+  $form['predicates'] = array(
+    '#type' => 'textarea',
+    '#title' => 'RDF Predicates',
+    '#default_value' => empty($mapping[$field_name]['predicates']) ? '' : implode("\n",$mapping[$field_name]['predicates']),
+    '#description' => t('Enter the predicate mappings for @label here. Predicates should be listed in CURIE syntax, with the vocabulary namespace and predicate. For example, foaf:name.', array('@label' => $label)),
+  );
+  
+  // @todo Possibly autocomplete the builtin xsd datatypes, but do not restrict to xsd datatypes.
+  $form['datatype'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Datatype',
+    '#autocomplete_path' => 'admin/config/rdfui/datatype/autocomplete',
+    '#default_value' => empty($mapping[$field_name]['datatype']) ? '' : $mapping[$field_name]['datatype'],
+    '#description' => t('If there is a datatype for @label, enter it here. You can use !link or other dataypes.', array('@label' => $label, '!link' => l('XML Schema datatypes', 'http://www.w3.org/TR/2004/REC-rdf-mt-20040210/#dtype_interp'))), 
+  );
+  
+  $form['type'] = array(
+    '#type' => 'select',
+    '#title' => 'Attribute Type',
+    '#default_value' => empty($mapping[$field_name]['type']) ? 'property' : $mapping[$field_name]['type'],
+    '#description' => t('If a field contains a literal, such as a string or an integer, then the property attribute should be used. If it contains a url or node reference, the !rel or !rev attribute should be used.', array('@label' => $label, '!rel' => l('rel','http://www.w3.org/TR/html401/struct/links.html#adef-rel'), '!rev' => l('rev','http://www.w3.org/TR/html401/struct/links.html#adef-rev'))),
+    '#options' => array('property'=>'property', 'rel'=>'rel', 'rev'=>'rev'),
+  );
+  
+  
 }
  
