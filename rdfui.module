@@ -7,15 +7,19 @@
  */
 
 /**
- * Implementation of hook_permission().
+ * Implements hook_permission().
  */
 function rdfui_permission() {
-  return array('administer RDF field mappings' => 'Change the RDF mappings for types and fields');
+  return array(
+    'administer RDF field mappings' => array(
+      'Change the RDF mappings for types and fields'
+    ),
+  );
 }
 
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function rdfui_menu() {
   $items = array();
