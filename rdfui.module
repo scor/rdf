@@ -12,11 +12,10 @@
 function rdfui_permission() {
   return array(
     'administer RDF field mappings' => array(
-      'Change the RDF mappings for types and fields'
+      'title' => t('Change the RDF mappings for types and fields'),
     ),
   );
 }
-
 
 /**
  * Implements hook_menu().
