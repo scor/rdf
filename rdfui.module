@@ -10,7 +10,7 @@
  * Implementation of hook_permission().
  */
 function rdfui_permission() {
-  return array('administer RDF CCK mappings' => 'Change the RDF mappings for types and fields');
+  return array('administer RDF field mappings' => 'Change the RDF mappings for types and fields');
 }
 
 
@@ -41,7 +41,14 @@ function rdfui_menu() {
         }
       }
     }
-  }     
+  }
+  
+  $items['admin/config/rdfui/datatype/autocomplete'] = array(
+    'title' => 'RDF datatype autocomplete',
+    'page callback' => 'rdfui_datatype_autocomplete',
+    'access arguments' => array('administer RDF field mappings'),
+    'type' => MENU_CALLBACK,
+  );     
   
   return $items;
 }
@@ -91,6 +98,7 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   $form['rdf']['datatype'] = array(
     '#type' => 'textfield',
     '#title' => 'Datatype',
+    '#autocomplete_path' => 'admin/config/rdfui/datatype/autocomplete',
     '#default_value' => empty($mapping[$field_name]['datatype']) ? '' : $mapping[$field_name]['datatype'],
     '#description' => t('If there is a datatype for @label, enter it here. You can use !link or other dataypes.', array('@label' => $label, '!link' => l('XML Schema datatypes', 'http://www.w3.org/TR/2004/REC-rdf-mt-20040210/#dtype_interp'))), 
   );
@@ -113,8 +121,30 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
 }
 
 function rdfui_form_field_ui_field_edit_form_validate($form, &$form_state) {
-  // validate
-  // TODO: should comply with CURIE syntax
+  
+  // validate predicates
+  if ($predicates = trim($form_state['values']['predicates'])) {
+    $predicates = explode("\n",$predicates);
+    $pattern = "/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/";
+    $error = '';
+    foreach($predicates as $predicate) {
+      $predicate = trim($predicate);      
+      if (!preg_match($pattern, $predicate)){
+        $error .= t('Predicate %predicate is an invalid format. ', array('%predicate'=>$predicate));
+      }
+    }
+    
+    if ($error)
+      form_set_error('predicates', $error);
+  }
+  
+  // validate datatype
+  if ($datatype = trim($form_state['values']['datatype'])) {
+    $pattern = "/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/";
+    if(!preg_match($pattern, $datatype))    
+      form_set_error('datatype', t('Datatype %datatype is an invalid format.', array('%datatype'=>$datatype)));
+  }
+
 }
 
 function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
@@ -136,5 +166,23 @@ function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
   
   rdf_mapping_save($mapping_info);
   
+}
+
+/**
+ * Menu callback for datatype autocomplete
+ */
+function rdfui_datatype_autocomplete($string) {
+  
+  $datatypes = 'xsd:string, xsd:boolean, xsd:decimal, xsd:float, xsd:double, xsd:dateTime, xsd:time, xsd:date, xsd:gYearMonth, xsd:gYear, xsd:gMonthDay, xsd:gDay, xsd:gMonth, xsd:hexBinary, xsd:base64Binary, xsd:anyURI, xsd:normalizedString, xsd:token, xsd:language, xsd:NMTOKEN, xsd:Name, xsd:NCName, xsd:integer, xsd:nonPositiveInteger, xsd:negativeInteger, xsd:long, xsd:int, xsd:short, xsd:byte, xsd:nonNegativeInteger, xsd:unsignedLong, xsd:unsignedInt, xsd:unsignedShort, xsd:unsignedByte, xsd:positiveInteger';
+  
+  $datatypes = explode(', ',$datatypes);
+  $matches = array();
+  
+  foreach($datatypes as $datatype) {
+    if (preg_match("/^$string/", $datatype))
+      $matches[$datatype] = $datatype;
+  }  
+  
+  drupal_json_output($matches);
 }
  
