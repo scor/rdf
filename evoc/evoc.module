@@ -1,0 +1,29 @@
+<?php
+// $Id:  $
+
+/**
+ * @file
+ * Allows to import external Vocabularies in order to map them to Drupal data
+ * structure.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function evoc_menu() {
+  $items['evoc/import'] = array(
+    'title' => 'Import external RDF vocabulary',
+    'description' => 'Import RDF terms of an external vocabulary.',
+    'page callback' => 'evoc_import',
+    'access arguments' => array('administer content types'),
+    'file' => 'evoc.pages.inc',
+  );
+//   $items['evoc/import'] = array(
+//     'title' => 'Import external RDF vocabulary',
+//     'page callback' => 'drupal_get_form',
+//     'page arguments' => array('evoc_import_form'),
+//     'access arguments' => array('administer content types'),
+//   );
+
+  return $items;
+}

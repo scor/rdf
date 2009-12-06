@@ -1,0 +1,10 @@
+; $Id:  $
+name = External RDF Vocabulary Importer
+description = Allows to import external Vocabularies in order to map them to Drupal data structure.
+dependencies[] = rdfx
+package = RDF
+version = VERSION
+core = 7.x
+files[] = evoc.module
+files[] = evoc.pages.inc
+
