@@ -1,0 +1,21 @@
+.predicates-widget .predicate {
+  padding: 2px;
+  margin-right: 10px;
+  background-color: #eeeeee;
+}
+
+.predicates-widget .predicate-add {
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+.predicates-widget .predicate-holder {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.predicates-widget .predicate-remove {
+  cursor: pointer;
+  color: red;
+  font-weight: bold;
+}
