@@ -73,9 +73,8 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, 
 }
 
 /**
- *  Implementation of hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter().
  */
-
 function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   
   $field_name = $form['#field']['field_name'];
@@ -102,6 +101,9 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
 
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
 function rdfui_form_node_type_form_alter(&$form, &$form_state) {
   
   $instance = field_info_instance('node', 'title', $form['#node_type']->type);
@@ -147,14 +149,17 @@ function rdfui_form_field_ui_field_edit_form_validate($form, &$form_state) {
 
 }
 
+/**
+ * Saves RDF mapping for field.
+ */
 function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
   $field_name = $form['#field']['field_name'];
   $instance = $form['#fields'][$field_name]['instance'];
   $object_type = $instance['object_type'];
   
   $mapping = rdf_mapping_load($object_type);
-    
-  $mapping[$field_name]['predicates'] = explode("\n",$form_state['values']['predicates']);
+  $predicates = explode("\n",$form_state['values']['predicates']);
+  $mapping[$field_name]['predicates'] = array_map('trim', $predicates);
   $mapping[$field_name]['datatype'] = $form_state['values']['datatype'];
   $mapping[$field_name]['type'] = $form_state['values']['type'];
   
@@ -175,7 +180,7 @@ function rdfui_datatype_autocomplete($string) {
   
   $datatypes = 'xsd:string, xsd:boolean, xsd:decimal, xsd:float, xsd:double, xsd:dateTime, xsd:time, xsd:date, xsd:gYearMonth, xsd:gYear, xsd:gMonthDay, xsd:gDay, xsd:gMonth, xsd:hexBinary, xsd:base64Binary, xsd:anyURI, xsd:normalizedString, xsd:token, xsd:language, xsd:NMTOKEN, xsd:Name, xsd:NCName, xsd:integer, xsd:nonPositiveInteger, xsd:negativeInteger, xsd:long, xsd:int, xsd:short, xsd:byte, xsd:nonNegativeInteger, xsd:unsignedLong, xsd:unsignedInt, xsd:unsignedShort, xsd:unsignedByte, xsd:positiveInteger';
   
-  $datatypes = explode(', ',$datatypes);
+  $datatypes = explode(', ', $datatypes);
   $matches = array();
   
   foreach($datatypes as $datatype) {
@@ -201,9 +206,14 @@ function rdfui_field_form(&$form, $mapping, $field_name, $label) {
     '#title' => 'Datatype',
     '#autocomplete_path' => 'admin/config/rdfui/datatype/autocomplete',
     '#default_value' => empty($mapping[$field_name]['datatype']) ? '' : $mapping[$field_name]['datatype'],
-    '#description' => t('If there is a datatype for @label, enter it here. You can use !link or other dataypes.', array('@label' => $label, '!link' => l('XML Schema datatypes', 'http://www.w3.org/TR/2004/REC-rdf-mt-20040210/#dtype_interp'))), 
+    '#description' => t('If there is a datatype for @label, enter it here. You can use !link or other dataypes.',
+      array(
+        '@label' => $label,
+        '!link' => l('XML Schema datatypes', 'http://www.w3.org/TR/2004/REC-rdf-mt-20040210/#dtype_interp', array('attributes' => array('target' => '_blank'))),
+      )
+    ),
   );
-  
+
   $form['type'] = array(
     '#type' => 'select',
     '#title' => 'Attribute Type',
