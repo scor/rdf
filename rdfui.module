@@ -84,13 +84,15 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   
   $mapping = rdf_mapping_load($object_type, $instance['bundle']);
   
+  dpm($mapping);
+  
   $form['rdf'] = array(
     '#type' => 'fieldset',
     '#title' => t('@label RDF Mapping', array('@label' => $label)),
   );
   
   // add the predicate, datatype, etc fields
-  rdfui_field_form($form['rdf'], $mapping, $field_name, $label);
+  rdfui_field_fieldset($form['rdf'], $mapping, $field_name, $label);
   
   $form['submit']['#weight'] = 1;
   
@@ -98,7 +100,6 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_field_ui_field_edit_form_validate'));
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_field_ui_field_edit_form_submit'));
   
-
 }
 
 /**
@@ -108,7 +109,7 @@ function rdfui_form_node_type_form_alter(&$form, &$form_state) {
   
   $instance = field_info_instance('node', 'title', $form['#node_type']->type);
   $mapping = rdf_mapping_load($instance['object_type'], $instance['bundle']);
-  
+    
   $form['rdf'] = array(
     '#type' => 'fieldset',
     '#title' => 'RDF Title Settings',
@@ -117,35 +118,36 @@ function rdfui_form_node_type_form_alter(&$form, &$form_state) {
     '#group' => 'additional_settings'
   );
   
-  // add the predicate, datatype, etc fields
-  rdfui_field_form($form['rdf'], $mapping, 'title', $instance['label']);
+  // add the predicate, datatype, property fields
+  rdfui_field_fieldset($form['rdf'], $mapping, 'title', $instance['label']);
+  
+  // add submit and validate handlers
+  $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_node_type_form_validate'));
+  $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_node_type_form_submit'));
   
 }
 
+
 function rdfui_form_field_ui_field_edit_form_validate($form, &$form_state) {
   
+  $field_name = $form['#field']['field_name'];
+  
   // validate predicates
-  if ($predicates = trim($form_state['values']['predicates'])) {
-    $predicates = explode("\n",$predicates);
-    $pattern = "/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/";
-    $error = '';
-    foreach($predicates as $predicate) {
-      $predicate = trim($predicate);      
-      if (!preg_match($pattern, $predicate)){
-        $error .= t('Predicate %predicate is an invalid format. ', array('%predicate'=>$predicate));
-      }
-    }
-    
-    if ($error)
-      form_set_error('predicates', $error);
-  }
+  _rdfui_validate_predicates($form_state, $field_name);
   
   // validate datatype
-  if ($datatype = trim($form_state['values']['datatype'])) {
-    $pattern = "/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/";
-    if(!preg_match($pattern, $datatype))    
-      form_set_error('datatype', t('Datatype %datatype is an invalid format.', array('%datatype'=>$datatype)));
-  }
+  _rdfui_validate_datatype($form_state, $field_name);
+}
+
+function rdfui_form_node_type_form_validate($form, &$form_state) {
+  
+  $field_name = 'title';
+  
+  // validate predicates
+  _rdfui_validate_predicates($form_state, $field_name);
+  
+  // validate datatype
+  _rdfui_validate_datatype($form_state, $field_name);
 
 }
 
@@ -153,23 +155,20 @@ function rdfui_form_field_ui_field_edit_form_validate($form, &$form_state) {
  * Saves RDF mapping for field.
  */
 function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
+  
   $field_name = $form['#field']['field_name'];
   $instance = $form['#fields'][$field_name]['instance'];
-  $object_type = $instance['object_type'];
+  _rdfui_mapping_save($form_state, $instance);
   
-  $mapping = rdf_mapping_load($object_type);
-  $predicates = explode("\n",$form_state['values']['predicates']);
-  $mapping[$field_name]['predicates'] = array_map('trim', $predicates);
-  $mapping[$field_name]['datatype'] = $form_state['values']['datatype'];
-  $mapping[$field_name]['type'] = $form_state['values']['type'];
+}
+
+/**
+ * Saves RDF mapping for Title field.
+ */
+function rdfui_form_node_type_form_submit($form, &$form_state) {
   
-  $mapping_info = array(
-    'mapping' => $mapping,
-    'type' => $object_type,
-    'bundle' => $instance['bundle']
-  );
-  
-  rdf_mapping_save($mapping_info);
+  $instance = field_info_instance('node', 'title', $form['#node_type']->type); 
+  _rdfui_mapping_save($form_state, $instance);
   
 }
 
@@ -191,9 +190,12 @@ function rdfui_datatype_autocomplete($string) {
   drupal_json_output($matches);
 }
 
-function rdfui_field_form(&$form, $mapping, $field_name, $label) {
+/**
+ * appends the rdf form fields to a fieldset dedicated to a fields.module field
+ */
+function rdfui_field_fieldset(&$fieldset, $mapping, $field_name, $label) {
   
-  $form['predicates'] = array(
+  $fieldset['rdf_'. $field_name .'_predicates'] = array(
     '#type' => 'textarea',
     '#title' => 'RDF Predicates',
     '#default_value' => empty($mapping[$field_name]['predicates']) ? '' : implode("\n",$mapping[$field_name]['predicates']),
@@ -201,7 +203,7 @@ function rdfui_field_form(&$form, $mapping, $field_name, $label) {
   );
   
   // @todo Possibly autocomplete the builtin xsd datatypes, but do not restrict to xsd datatypes.
-  $form['datatype'] = array(
+  $fieldset['rdf_'. $field_name .'_datatype'] = array(
     '#type' => 'textfield',
     '#title' => 'Datatype',
     '#autocomplete_path' => 'admin/config/rdfui/datatype/autocomplete',
@@ -214,7 +216,7 @@ function rdfui_field_form(&$form, $mapping, $field_name, $label) {
     ),
   );
 
-  $form['type'] = array(
+  $fieldset['rdf_'. $field_name .'_type'] = array(
     '#type' => 'select',
     '#title' => 'Attribute Type',
     '#default_value' => empty($mapping[$field_name]['type']) ? 'property' : $mapping[$field_name]['type'],
@@ -222,6 +224,67 @@ function rdfui_field_form(&$form, $mapping, $field_name, $label) {
     '#options' => array('property'=>'property', 'rel'=>'rel', 'rev'=>'rev'),
   );
   
-  
 }
- 
+
+/**
+ * Sets a form error if predicates don't validate.
+ */
+function _rdfui_validate_predicates($form_state, $field_name) {
+  
+  // validate predicates
+  if ($predicates = trim($form_state['values']['rdf_'. $field_name .'_predicates'])) {
+    $predicates = explode("\n",$predicates);
+    $pattern = "/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/";
+    $error = '';
+    foreach($predicates as $predicate) {
+      $predicate = trim($predicate);      
+      if (!preg_match($pattern, $predicate)){
+        $error .= t('Predicate %predicate is an invalid format. ', array('%predicate'=>$predicate));
+      }
+    }
+    
+    if ($error)
+      form_set_error('predicates', $error);
+  }
+}
+
+/**
+ * Sets a form error if datatype don't validate.
+ */
+function _rdfui_validate_datatype($form_state, $field_name) {
+
+  // validate datatype
+  if ($datatype = trim($form_state['values']['rdf_'. $field_name .'_datatype'])) {
+    $pattern = "/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/";
+    if(!preg_match($pattern, $datatype))    
+      form_set_error('datatype', t('Datatype %datatype is an invalid format.', array('%datatype'=>$datatype)));
+  }
+
+}
+
+/**
+ * Saves the mapping
+ */
+
+function _rdfui_mapping_save($form_state, $instance) {
+  
+  $field_name = $instance['field_name'];
+  $object_type = $instance['object_type'];
+  $bundle = $instance['bundle'];
+  
+  $mapping = rdf_mapping_load($object_type, $instance['bundle']);
+  dpm($mapping);
+  $predicates = explode("\n",$form_state['values']['rdf_'. $field_name .'_predicates']);
+  $mapping[$field_name]['predicates'] = array_map('trim', $predicates);
+  $mapping[$field_name]['datatype'] = $form_state['values']['rdf_'. $field_name .'_datatype'];
+  $mapping[$field_name]['type'] = $form_state['values']['rdf_'. $field_name .'_type'];
+  
+  $mapping_info = array(
+    'mapping' => $mapping,
+    'type' => $object_type,
+    'bundle' => $bundle
+  );
+  
+  rdf_mapping_save($mapping_info);
+
+}
