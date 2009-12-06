@@ -5,6 +5,10 @@
  * @file
  * User interface for RDF.
  */
+ 
+define('RDFUI_PREDICATE_REGEX',"/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/");
+define('RDFUI_DATATYPE_REGEX',"/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/"); 
+ 
 
 /**
  * Implements hook_permission().
@@ -46,9 +50,16 @@ function rdfui_menu() {
     }
   }
   
-  $items['admin/config/rdfui/datatype/autocomplete'] = array(
+  $items['rdfui/datatype/autocomplete'] = array(
     'title' => 'RDF datatype autocomplete',
     'page callback' => 'rdfui_datatype_autocomplete',
+    'access arguments' => array('administer RDF field mappings'),
+    'type' => MENU_CALLBACK,
+  );
+  
+  $items['rdfui/predicates/autocomplete'] = array(
+    'title' => 'RDF predicates autocomplete',
+    'page callback' => 'rdfui_predicates_autocomplete',
     'access arguments' => array('administer RDF field mappings'),
     'type' => MENU_CALLBACK,
   );     
@@ -83,9 +94,7 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   $object_type = $instance['object_type'];
   
   $mapping = rdf_mapping_load($object_type, $instance['bundle']);
-  
-  dpm($mapping);
-  
+    
   $form['rdf'] = array(
     '#type' => 'fieldset',
     '#title' => t('@label RDF Mapping', array('@label' => $label)),
@@ -191,6 +200,24 @@ function rdfui_datatype_autocomplete($string) {
 }
 
 /**
+ * Menu callback for predicates autocomplete
+ */
+function rdfui_predicates_autocomplete($string) {
+  
+  $datatypes = 'foaf:name, kelly:lucas, monkey:code';
+  
+  $datatypes = explode(', ', $datatypes);
+  $matches = array();
+  
+  foreach($datatypes as $datatype) {
+    if (preg_match("/^$string/", $datatype))
+      $matches[$datatype] = $datatype;
+  }  
+  
+  drupal_json_output($matches);
+}
+
+/**
  * appends the rdf form fields to a fieldset dedicated to a fields.module field
  */
 function rdfui_field_fieldset(&$fieldset, $mapping, $field_name, $label) {
@@ -200,13 +227,15 @@ function rdfui_field_fieldset(&$fieldset, $mapping, $field_name, $label) {
     '#title' => 'RDF Predicates',
     '#default_value' => empty($mapping[$field_name]['predicates']) ? '' : implode("\n",$mapping[$field_name]['predicates']),
     '#description' => t('Enter the predicate mappings for @label here. Predicates should be listed in CURIE syntax, with the vocabulary namespace and predicate. For example, foaf:name.', array('@label' => $label)),
+    '#resizable' => FALSE,
+    '#attributes' => array('class' => array('predicate-store'))
   );
   
   // @todo Possibly autocomplete the builtin xsd datatypes, but do not restrict to xsd datatypes.
   $fieldset['rdf_'. $field_name .'_datatype'] = array(
     '#type' => 'textfield',
     '#title' => 'Datatype',
-    '#autocomplete_path' => 'admin/config/rdfui/datatype/autocomplete',
+    '#autocomplete_path' => 'rdfui/datatype/autocomplete',
     '#default_value' => empty($mapping[$field_name]['datatype']) ? '' : $mapping[$field_name]['datatype'],
     '#description' => t('If there is a datatype for @label, enter it here. You can use !link or other dataypes.',
       array(
@@ -223,6 +252,10 @@ function rdfui_field_fieldset(&$fieldset, $mapping, $field_name, $label) {
     '#description' => t('If a field contains a literal, such as a string or an integer, then the property attribute should be used. If it contains a url or node reference, the !rel or !rev attribute should be used.', array('@label' => $label, '!rel' => l('rel','http://www.w3.org/TR/html401/struct/links.html#adef-rel'), '!rev' => l('rev','http://www.w3.org/TR/html401/struct/links.html#adef-rev'))),
     '#options' => array('property'=>'property', 'rel'=>'rel', 'rev'=>'rev'),
   );
+    
+  drupal_add_css(drupal_get_path('module', 'rdfui') .'/css/rdfui.css', 'file'); 
+  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX)), 'setting'); 
+  drupal_add_js(drupal_get_path('module', 'rdfui') .'/js/rdfui.js', 'file');
   
 }
 
@@ -234,17 +267,16 @@ function _rdfui_validate_predicates($form_state, $field_name) {
   // validate predicates
   if ($predicates = trim($form_state['values']['rdf_'. $field_name .'_predicates'])) {
     $predicates = explode("\n",$predicates);
-    $pattern = "/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/";
     $error = '';
     foreach($predicates as $predicate) {
       $predicate = trim($predicate);      
-      if (!preg_match($pattern, $predicate)){
+      if (!preg_match(RDFUI_PREDICATE_REGEX, $predicate)){
         $error .= t('Predicate %predicate is an invalid format. ', array('%predicate'=>$predicate));
       }
     }
     
     if ($error)
-      form_set_error('predicates', $error);
+      form_set_error('rdf_'. $field_name .'_predicates', $error);
   }
 }
 
@@ -255,9 +287,8 @@ function _rdfui_validate_datatype($form_state, $field_name) {
 
   // validate datatype
   if ($datatype = trim($form_state['values']['rdf_'. $field_name .'_datatype'])) {
-    $pattern = "/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/";
-    if(!preg_match($pattern, $datatype))    
-      form_set_error('datatype', t('Datatype %datatype is an invalid format.', array('%datatype'=>$datatype)));
+    if(!preg_match(RDFUI_PREDICATE_REGEX, $datatype))    
+      form_set_error('rdf_'. $field_name .'_datatype', t('Datatype %datatype is an invalid format.', array('%datatype'=>$datatype)));
   }
 
 }
@@ -273,8 +304,8 @@ function _rdfui_mapping_save($form_state, $instance) {
   $bundle = $instance['bundle'];
   
   $mapping = rdf_mapping_load($object_type, $instance['bundle']);
-  dpm($mapping);
-  $predicates = explode("\n",$form_state['values']['rdf_'. $field_name .'_predicates']);
+
+  $predicates = array_unique(explode("\n",$form_state['values']['rdf_'. $field_name .'_predicates']));
   $mapping[$field_name]['predicates'] = array_map('trim', $predicates);
   $mapping[$field_name]['datatype'] = $form_state['values']['rdf_'. $field_name .'_datatype'];
   $mapping[$field_name]['type'] = $form_state['values']['rdf_'. $field_name .'_type'];
