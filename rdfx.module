@@ -33,4 +33,85 @@ function rdfx_init() {
   }
 }
 
+/**
+ * Executes a SPARQL query on either a local SPARQL engine if available or
+ * attempts to find a working public SPARQL endpoint on the web.
+ */
+function rdfx_sparql_request($query, $datasets = array()) {
+  // @todo Check if the datasets are responding before trying to query them.
 
+  // Attempts to execute the SPARQL query on a local ARC2 library.
+  // MySQL is required.
+  $db_spec = $GLOBALS['databases']['default']['default'];
+  if ($db_spec['driver'] = 'mysql' && class_exists('ARC2')) {
+    // Sets up a local repository which is required for running SPARQL queries
+    // with ARC2.
+    $store = rdfx_arc2_init_store('rdfx_sparql');
+//var_dump($store);
+    // Load each dataset in the store.
+    foreach ($datasets as $url) {
+      // @todo LOAD INTO <...>
+      $q = "LOAD <$url>";
+      $store->query($q);
+    }
+    $q = 'SELECT * WHERE { ?s ?p ?o} LIMIT 50';
+    $rs = $store->query($q);
+    if (!$store->getErrors()) {
+      //  $rows = $rs['result']['rows'];
+      var_dump($rs);
+    }
+    // Once we're done we drop the temporary data.
+    $store->reset();
+
+  }
+
+
+}
+
+
+
+/**
+ * Sets up an ARC2 RDF repository.
+ *
+ * @param $name
+ *   The name of the local repository.
+ * @param $endpoint
+ *   Set to TRUE if this store should also be setup as a SPARQL endpoint.
+ * @return
+ *   An ARC2 store object.
+ */
+function rdfx_arc2_init_store($name, $endpoint = FALSE) {
+  $db_spec = $GLOBALS['databases']['default']['default'];
+
+  $config = array(
+    /* db */
+    'db_name' => $db_spec['database'],
+    'db_user' => $db_spec['username'],
+    'db_pwd' => isset($db_spec['password']) ? $db_spec['password'] : '',
+    /* store */
+    'store_name' => $name,
+
+    /* endpoint */
+    'endpoint_features' => array(
+      'select', 'construct', 'ask', 'describe',
+      //'load', 'insert', 'delete',
+      'dump' /* dump is a special command for streaming SPOG export */
+    ),
+    'endpoint_timeout' => 60, /* not implemented in ARC2 preview */
+    'endpoint_read_key' => '', /* optional */
+    'endpoint_write_key' => '', /* optional */
+    'endpoint_max_limit' => 500, /* optional */
+  );
+
+  /* instantiation */
+  if ($endpoint) {
+    $store = ARC2::getStoreEndpoint($config);
+  }
+  else {
+    $store = ARC2::getStore($config);
+  }
+  if (!$store->isSetUp()) {
+    $store->setUp();
+  }
+  return $store;
+}

@@ -17,7 +17,7 @@ function evoc_import() {
 function evoc_import_form($form_state) {
   $form['help'] = array(
     '#markup' => 'This form allows you to import external RDF vocabularies into your site.
-    These can later be used by other modules such as <a href="http://drupal.org/project/rdfcck">RDF CCK</a> or <a href="http://drupal.org/project/neologism">Neologism</a>. Popular vocabularies include:<br />
+    These can later be used by other modules such as <a href="http://drupal.org/project/rdf">RDF UI</a> or <a href="http://drupal.org/project/neologism">Neologism</a>. Popular vocabularies include:<br />
     dc : http://purl.org/dc/elements/1.1/<br />
     dcterms : http://purl.org/dc/terms/<br />
     dcmitype : http://purl.org/dc/dcmitype/<br />
@@ -54,6 +54,13 @@ function evoc_import_form_validate($form, &$form_state) {
 }
 
 function evoc_import_form_submit($form, &$form_state) {
-  // @todo
-  drupal_set_message(t('Your form has been saved.'));
+// @todo is that still the best way to keep the value when the form is reloaded?
+  $form_state['storage']['values'] = $form_state['values'];
+  $form_state['rebuild'] = true;
+
+//var_dump($form_state);
+
+  evoc_import_vocabulary($form_state['values']['ns_uri'], $form_state['values']['prefix']);
+
+  drupal_set_message(t('Your form has been saved...'));
 }
