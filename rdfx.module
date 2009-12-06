@@ -1,0 +1,36 @@
+<?php
+// $Id:  $
+
+/**
+ * @file
+ * Extends the RDF API of Drupal core to support more RDF seralizations formats
+ * other RDF capabilities.
+ */
+
+/**
+ * Namespace for the site vocabulary, used to generate local RDF properties and
+ * classes for fields and content types.
+ */
+define('SITE_VOCABULARY_URI', url('ns', array('absolute' => TRUE, 'fragment' => ' ')));
+
+/**
+ * Path to the ARC2 PHP library.
+ */
+if (module_exists('libraries')) {
+  define('RDF_ARC2_PATH', libraries_get_path('arc'));
+}
+else {
+  define('RDF_ARC2_PATH', drupal_get_path('module', 'rdfx') . '/vendor/arc');
+}
+
+/**
+ * Implements hook_init().
+ */
+function rdfx_init() {
+  // Attempts to load the ARC2 library, if available.
+  if (!class_exists('ARC2')) {
+    @include_once RDF_ARC2_PATH . '/ARC2.php';
+  }
+}
+
+
