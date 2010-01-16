@@ -260,7 +260,7 @@ function rdfui_field_fieldset(&$fieldset, $mapping, $field_name, $label) {
   );
     
   drupal_add_css(drupal_get_path('module', 'rdfui') .'/css/rdfui.css', 'file'); 
-  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX, 'rdfui' => $rdfui_settings)), 'setting'); 
+  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX, 'settings' => $rdfui_settings)), 'setting'); 
   drupal_add_js(drupal_get_path('module', 'rdfui') .'/js/rdfui.js', 'file');
   
 }

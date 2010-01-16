@@ -1,20 +1,20 @@
-.predicates-widget .predicate {
+.predicate {
   padding: 2px;
   margin-right: 10px;
   background-color: #eeeeee;
 }
 
-.predicates-widget .predicate-add {
+.predicate-add {
   margin-right: 5px;
   margin-left: 5px;
 }
 
-.predicates-widget .predicate-holder {
+.predicate-holder {
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-.predicates-widget .predicate-remove {
+.predicate-remove {
   cursor: pointer;
   color: red;
   font-weight: bold;

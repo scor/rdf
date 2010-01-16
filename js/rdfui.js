@@ -83,13 +83,13 @@
   
   Drupal.theme.prototype.rdfPredicatesWidget = function(context, index) {
     var wrapper = $(context);
-    var basepath = Drupal.settings.rdfui.basepath;
+    basepath = Drupal.settings.rdfui.settings.basepath;
     return '<div id="" class="form-item predicates-widget">' +
       '<div class="predicate-holder"></div>' +
       '<input type="text" class="predicate-entry form-autocomplete" size="30" id="rdfui-predicate-edit-'+ index +'" />' +
       '<input type="submit" value="' + Drupal.t('Add') + '" class="form-submit predicate-add" id="rdfui-predicate-edit-button-'+ index +'">' +
       '<input class="autocomplete" type="hidden" id="rdfui-predicate-edit-'+ index +'-autocomplete" ' +
-      'value="' + basepath + 'rdfui/predicates/autocomplete" disabled="disabled" />' +
+      'value="' + basepath + '/rdfui/predicates/autocomplete" disabled="disabled" />' +
       '<div class="description"></div>' +
     '</div>';
   };
