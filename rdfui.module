@@ -75,10 +75,27 @@ function rdfui_menu() {
  */
 function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, $instance) {
   
+  $fields = field_info_instances($obj_type, $bundle->type);
+  
   $form['textfield'] = array(
     '#type' => 'textfield',
     '#title' => 'title'
   );
+  
+  $mapping = rdf_mapping_load($obj_type, $bundle->type);
+  
+  foreach ($fields as $field) {
+    $label = $field['label'];
+    $field_name = $field['field_name']['#value'];
+    $form['rdf'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('@label RDF Mapping', array('@label' => $label)),
+  );
+  
+  // add the predicate, datatype, etc fields
+  rdfui_field_fieldset($form['rdf'], $mapping, $field_name, $label);
+    
+  }
   
   return $form;
 }
@@ -166,7 +183,8 @@ function rdfui_form_node_type_form_validate($form, &$form_state) {
 function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
   
   $field_name = $form['#field']['field_name'];
-  $instance = $form['#fields'][$field_name]['instance'];
+  $instance = $form['instance'];
+  dpm($instance);
   _rdfui_mapping_save($form_state, $instance);
   
 }
@@ -301,9 +319,9 @@ function _rdfui_validate_datatype($form_state, $field_name) {
 
 function _rdfui_mapping_save($form_state, $instance) {
   
-  $field_name = $instance['field_name'];
-  $object_type = $instance['object_type'];
-  $bundle = $instance['bundle'];
+  $field_name = $instance['field_name']['#value'];
+  $object_type = $instance['object_type']['#value'];
+  $bundle = $instance['bundle']['#value'];
   
   $mapping = rdf_mapping_load($object_type, $instance['bundle']);
 
