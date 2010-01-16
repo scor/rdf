@@ -89,11 +89,11 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, 
 function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   
   $field_name = $form['#field']['field_name'];
-  $instance = $form['#fields'][$field_name]['instance'];
-  $label = isset($instance['label']) ? $instance['label'] : $instance['field_name'];
-  $object_type = $instance['object_type'];
+  $instance = $form['instance'];
+  $label = isset($instance['label']) ? $instance['label']['#default_value'] : $instance['field_name'];
+  $object_type = $instance['object_type']['#value'];
   
-  $mapping = rdf_mapping_load($object_type, $instance['bundle']);
+  $mapping = rdf_mapping_load($object_type, $instance['bundle']['#value']);
     
   $form['rdf'] = array(
     '#type' => 'fieldset',
