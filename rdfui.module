@@ -9,6 +9,16 @@
 define('RDFUI_PREDICATE_REGEX',"/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/");
 define('RDFUI_DATATYPE_REGEX',"/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/"); 
  
+/**
+ * Implements hook_help().
+ */
+function rdfui_help($path, $arg) {
+  switch ($path) {
+    case 'admin/structure/types/manage/%/rdf':
+      return '<p>' . t('Help text', array()) . '</p>';
+  }
+}
+
 
 /**
  * Implements hook_permission().
@@ -43,7 +53,8 @@ function rdfui_menu() {
             'load arguments' => array($obj_type, $bundle_arg),
             'page callback' => 'drupal_get_form',
             'page arguments' => array('rdfui_admin_rdf_overview_form', $obj_type, $bundle_arg, $instance_position),
-            'type' => MENU_LOCAL_TASK
+            'type' => MENU_LOCAL_TASK,
+            'weight' => 50,
           ) + $access;        
         }
       }
@@ -74,27 +85,23 @@ function rdfui_menu() {
  * fields to be mapped to RDF properties.
  */
 function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, $instance) {
+  global $base_url;
+  drupal_add_js(array('rdfui'=>array('basepath' => $base_url)), 'setting');
   
   $fields = field_info_instances($obj_type, $bundle->type);
   
-  $form['textfield'] = array(
-    '#type' => 'textfield',
-    '#title' => 'title'
-  );
-  
-  $mapping = rdf_mapping_load($obj_type, $bundle->type);
-  
+  $mapping = rdf_mapping_load($obj_type, $bundle->type); 
+
   foreach ($fields as $field) {
     $label = $field['label'];
-    $field_name = $field['field_name']['#value'];
-    $form['rdf'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('@label RDF Mapping', array('@label' => $label)),
-  );
-  
-  // add the predicate, datatype, etc fields
-  rdfui_field_fieldset($form['rdf'], $mapping, $field_name, $label);
+    $field_name = $field['field_name'];
+    $form['rdf-'.$field_name] = array(
+      '#type' => 'fieldset',
+      '#title' => t('@label RDF Mapping', array('@label' => $label)),
+    );
     
+    // add the predicate, datatype, etc fields
+    rdfui_field_fieldset($form['rdf-'.$field_name], $mapping, $field_name, $label);
   }
   
   return $form;
@@ -104,6 +111,9 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, 
  * Implements hook_form_FORM_ID_alter().
  */
 function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  
+  global $base_url;
+  drupal_add_js(array('rdfui'=>array('basepath' => $base_url)), 'setting'); 
   
   $field_name = $form['#field']['field_name'];
   $instance = $form['instance'];
@@ -116,7 +126,7 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
     '#type' => 'fieldset',
     '#title' => t('@label RDF Mapping', array('@label' => $label)),
   );
-  
+
   // add the predicate, datatype, etc fields
   rdfui_field_fieldset($form['rdf'], $mapping, $field_name, $label);
   
@@ -184,7 +194,7 @@ function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
   
   $field_name = $form['#field']['field_name'];
   $instance = $form['instance'];
-  dpm($instance);
+  
   _rdfui_mapping_save($form_state, $instance);
   
 }
@@ -241,7 +251,7 @@ function rdfui_predicates_autocomplete($string) {
 function rdfui_field_fieldset(&$fieldset, $mapping, $field_name, $label) {
   
   global $base_url;
-  
+
   $fieldset['rdf_'. $field_name .'_predicates'] = array(
     '#type' => 'textarea',
     '#title' => 'RDF Predicates',
@@ -274,7 +284,7 @@ function rdfui_field_fieldset(&$fieldset, $mapping, $field_name, $label) {
   );
     
   drupal_add_css(drupal_get_path('module', 'rdfui') .'/css/rdfui.css', 'file'); 
-  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX, 'basepath' => $base_url)), 'setting'); 
+  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX)), 'setting'); 
   drupal_add_js(drupal_get_path('module', 'rdfui') .'/js/rdfui.js', 'file');
   
 }
