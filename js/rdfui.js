@@ -16,22 +16,36 @@
       
       $('.predicate-add').click(function(){
         wrapper = $(this).parents('div.form-item.form-type-textarea');
+        // Get the value from the text field.
         val = $(this).prev().val();
+        // Test whether the predicate is already added to this field. If it is,
+        // fall out of if statement and do nothing.
         if ($(wrapper).find('.predicate-val').filter(function(){
           return $(this).text() == val;
         }).length == 0) {
+          // Ensure that this value is formatted as namespace:term based on the
+          // regular expression defined in rdfui.module.
+          // @todo Check that the namespace is a valid namespace.
           pattern = eval(Drupal.settings.rdfui.predicateRegex);
           if (pattern.test(val)) {
+            // Theme the term and add it to the predicate holder above the
+            // field.
             $(wrapper).find('.predicate-holder').append(Drupal.theme('rdfPredicate',val, false));
+            // Make the 'x' a button that removes the term.
             bindRemoveClicks(wrapper);
+            // Update the hidden textarea that will be used to submit the
+            // predicates added by the field.
             updateStore(wrapper);
+            // Empty the field so user can add another term.
             $(this).prev().val('');        
           }
+          // If the value didn't pass the regular expression, alert the user.
           else {
-            alert(Drupal.t(val + ' is an invalid format.'));
+            alert(Drupal.t(val + ' is not formatted correctly.'));
           }
-        }  
+        }
         
+        // Return false so the form does not submit.
         return false;
       });
       
@@ -47,12 +61,16 @@
       }
       
       function updateStore(wrapper) {
+        // Refresh the values in the hidden textarea that is used to submit the
+        // form.
         textarea = wrapper.find('.predicate-store');
         textarea.html('');
         wrapper.find('.predicate-val').each(function(){
           textarea.append($(this).html() + '\n');
         });
         
+        // If a new predicate is added, display a message that reminds the user
+        // to save changes.
         if(wrapper.data('changed') == false) {
           $(wrapper).find('.predicates-widget').prepend(Drupal.theme('rdfPredicatesChangedWarning')).hide().fadeIn();
           wrapper.data('changed',true);
