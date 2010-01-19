@@ -85,10 +85,6 @@ function rdfui_menu() {
  * fields to be mapped to RDF properties.
  */
 function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, $instance) {
-  global $base_url;
-  // We need to add js settings here so the basepath is set only once for this
-  // form.
-  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX, 'basepath' => $base_url)), 'setting'); 
   
   $fields = field_info_instances($obj_type, $bundle->type);
   
@@ -103,11 +99,13 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, 
     );
     
     // add the predicate, datatype, etc fields
-    rdfui_field_fieldset($form[$field_name], $mapping, $field_name, $label);
+    rdfui_predicate_fieldset($form[$field_name], $mapping, $field_name, $label);
   }
-  dpm($form);
+
   $form['field_names'] = array('#type' => 'value', '#value' => array_keys($fields));
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save RDF mapping'));
+  
+  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX)), 'setting'); 
   
   return $form;
 }
@@ -116,9 +114,6 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, 
  * Implements hook_form_FORM_ID_alter().
  */
 function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
-  
-  global $base_url;
-  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX, 'basepath' => $base_url)), 'setting'); 
   
   $field_name = $form['#field']['field_name'];
   $instance = $form['instance'];
@@ -133,7 +128,7 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   );
 
   // add the predicate, datatype, etc fields
-  rdfui_field_fieldset($form['rdf'], $mapping, $field_name, $label);
+  rdfui_predicate_fieldset($form['rdf'], $mapping, $field_name, $label);
   
   $form['submit']['#weight'] = 1;
   
@@ -141,12 +136,13 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_field_ui_field_edit_form_validate'));
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_field_ui_field_edit_form_submit'));
   
+  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX)), 'setting');
 }
 
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function rdfui_form_node_type_form_alter(&$form, &$form_state, $obj_type) {
+function rdfui_form_node_type_form_alter(&$form, &$form_state) {
   
   $bundle = $form['type']['#default_value'];
   
@@ -161,7 +157,14 @@ function rdfui_form_node_type_form_alter(&$form, &$form_state, $obj_type) {
     }
   }
     
-  $form['rdf'] = array(
+  $form['rdf_rdftype'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'RDF Type',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings'
+  );
+  $form['rdf_title'] = array(
     '#type' => 'fieldset',
     '#title' => 'RDF Title Predicate',
     '#collapsible' => TRUE,
@@ -170,12 +173,14 @@ function rdfui_form_node_type_form_alter(&$form, &$form_state, $obj_type) {
   );
   
   // add the predicate, datatype, property fields
-  rdfui_field_fieldset($form['rdf'], $mapping, 'title', 'title');
+  rdfui_type_fieldset($form['rdf_rdftype'], $mapping);
+  rdfui_predicate_fieldset($form['rdf_title'], $mapping, 'title', 'title');
   
   // add submit and validate handlers
   $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_node_type_form_validate'));
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_node_type_form_submit'));
   
+  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_PREDICATE_REGEX)), 'setting');
 }
 
 
@@ -244,6 +249,8 @@ function rdfui_form_node_type_form_submit($form, &$form_state) {
  */
 function rdfui_datatype_autocomplete($string) {
   
+  //@todo Make sure datatype is only active if property is the relationship.
+  
   $datatypes = 'xsd:string, xsd:boolean, xsd:decimal, xsd:float, xsd:double, xsd:dateTime, xsd:time, xsd:date, xsd:gYearMonth, xsd:gYear, xsd:gMonthDay, xsd:gDay, xsd:gMonth, xsd:hexBinary, xsd:base64Binary, xsd:anyURI, xsd:normalizedString, xsd:token, xsd:language, xsd:NMTOKEN, xsd:Name, xsd:NCName, xsd:integer, xsd:nonPositiveInteger, xsd:negativeInteger, xsd:long, xsd:int, xsd:short, xsd:byte, xsd:nonNegativeInteger, xsd:unsignedLong, xsd:unsignedInt, xsd:unsignedShort, xsd:unsignedByte, xsd:positiveInteger';
   
   $datatypes = explode(', ', $datatypes);
@@ -278,10 +285,8 @@ function rdfui_predicates_autocomplete($string) {
 /**
  * appends the rdf form fields to a fieldset dedicated to a fields.module field
  */
-function rdfui_field_fieldset(&$fieldset, $mapping, $field_name, $label) {
+function rdfui_predicate_fieldset(&$fieldset, $mapping, $field_name, $label) {
   
-  global $base_url;
-
   $fieldset['rdf_'. $field_name .'_predicates'] = array(
     '#type' => 'textarea',
     '#title' => 'RDF Predicates',
@@ -313,9 +318,27 @@ function rdfui_field_fieldset(&$fieldset, $mapping, $field_name, $label) {
     '#options' => array('property'=>'property', 'rel'=>'rel', 'rev'=>'rev'),
   );
     
-  drupal_add_css(drupal_get_path('module', 'rdfui') .'/css/rdfui.css', 'file'); 
+  drupal_add_css(drupal_get_path('module', 'rdfui') .'/css/rdfui.css', 'file');
   drupal_add_js(drupal_get_path('module', 'rdfui') .'/js/rdfui.js', 'file');
   
+}
+
+/**
+ * Appends the RDF type fieldset. Because this fieldset is always on the same
+ * page as fields created by rdfui_predicate_fieldset(), which add the css and
+ * js files, we do not add the files again.
+ */
+function rdfui_type_fieldset(&$fieldset, $mapping) {
+  dpm($mapping);
+  $fieldset['rdf_rdftype'] = array(
+    '#type' => 'textarea',
+    '#title' => 'RDF Type',
+    '#default_value' => empty($mapping['rdftype']) ? '' : implode("\n",$mapping['rdftype']),
+    '#description' => t('Enter the RDF type for the bundle here. Classes should be listed in CURIE syntax, with the vocabulary namespace and predicate. For example, sioc:Item.'),
+    '#resizable' => FALSE,
+    '#attributes' => array('class' => array('predicate-store'))
+  );
+    
 }
 
 /**

@@ -101,7 +101,7 @@
   
   Drupal.theme.prototype.rdfPredicatesWidget = function(context, index) {
     var wrapper = $(context);
-    var basepath = Drupal.settings.rdfui.basepath;
+    var basepath = Drupal.settings.basePath;
     var description = jQuery('.predicate-store + .description').eq(0);
     var html_output ='<div id="" class="form-item predicates-widget">' +
       '<div class="predicate-holder"></div>' +
