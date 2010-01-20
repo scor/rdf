@@ -1,3 +1,6 @@
+/*
+ * 3 field widget display
+ */
 .predicate {
   padding: 2px;
   margin-right: 10px;
@@ -18,4 +21,17 @@
   cursor: pointer;
   color: red;
   font-weight: bold;
+}
+
+/*
+ * Fieldset in RDF Settings block on bundle's main edit page
+ */
+.vertical-tabs #edit-rdf-title {
+  background:none;
+  padding: 0;
+}
+
+.vertical-tabs #edit-rdf-title legend {
+  display: inline;
+  padding: 20px 0 30px;
 }

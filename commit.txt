@@ -1,5 +1,0 @@
-- Rewrote rdfui_mapping_save to take parameters field_name, obj_type, and bundle
- directly instead of through instance because instance is not available in other
- forms.
-- Rewrote Node Type form so RDF predicate will submit.
-- Rewrote RDF Overview form so field predicates will submit.
