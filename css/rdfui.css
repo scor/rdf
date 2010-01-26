@@ -1,23 +1,23 @@
 /*
  * 3 field widget display
  */
-.predicate {
+.term {
   padding: 2px;
   margin-right: 10px;
   background-color: #eeeeee;
 }
 
-.predicate-add {
+.term-add {
   margin-right: 5px;
   margin-left: 5px;
 }
 
-.predicate-holder {
+.term-holder {
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-.predicate-remove {
+.term-remove {
   cursor: pointer;
   color: red;
   font-weight: bold;

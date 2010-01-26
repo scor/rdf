@@ -5,7 +5,7 @@
   Drupal.behaviors.predicateSelection = {
     attach: function (context) {
 
-      $('.predicate-store').each(function(index) {
+      $('.term-store').each(function(index) {
         wrapper = $(this).parents('div.form-item.form-type-textarea');
         wrapper.data('changed',false);
         $(this).parents('.resizable-textarea').hide();
@@ -14,23 +14,23 @@
         initPredicates(wrapper);
       });
       
-      $('.predicate-add').click(function(){
+      $('.term-add').click(function(){
         wrapper = $(this).parents('div.form-item.form-type-textarea');
         // Get the value from the text field.
         val = $(this).prev().val();
         // Test whether the predicate is already added to this field. If it is,
         // fall out of if statement and do nothing.
-        if ($(wrapper).find('.predicate-val').filter(function(){
+        if ($(wrapper).find('.term-val').filter(function(){
           return $(this).text() == val;
         }).length == 0) {
           // Ensure that this value is formatted as namespace:term based on the
           // regular expression defined in rdfui.module.
           // @todo Check that the namespace is a valid namespace.
-          pattern = eval(Drupal.settings.rdfui.predicateRegex);
+          pattern = eval(Drupal.settings.rdfui.termRegex);
           if (pattern.test(val)) {
             // Theme the term and add it to the predicate holder above the
             // field.
-            $(wrapper).find('.predicate-holder').append(Drupal.theme('rdfPredicate',val, false));
+            $(wrapper).find('.term-holder').append(Drupal.theme('rdfPredicate',val, false));
             // Make the 'x' a button that removes the term.
             bindRemoveClicks(wrapper);
             // Update the hidden textarea that will be used to submit the
@@ -50,11 +50,11 @@
       });
       
       function initPredicates(wrapper) {
-        textarea = wrapper.find('.predicate-store');
-        wrapper.find('.predicate-holder').children().remove();
+        textarea = wrapper.find('.term-store');
+        wrapper.find('.term-holder').children().remove();
         jQuery.each($(textarea).html().split('\n'), function(i,val) {
           if (jQuery.trim(val) != '') {
-            $(wrapper).find('.predicate-holder').append(Drupal.theme('rdfPredicate',val, true));
+            $(wrapper).find('.term-holder').append(Drupal.theme('rdfPredicate',val, true));
           }
         });
         bindRemoveClicks(wrapper);
@@ -63,9 +63,9 @@
       function updateStore(wrapper) {
         // Refresh the values in the hidden textarea that is used to submit the
         // form.
-        textarea = wrapper.find('.predicate-store');
+        textarea = wrapper.find('.term-store');
         textarea.html('');
-        wrapper.find('.predicate-val').each(function(){
+        wrapper.find('.term-val').each(function(){
           textarea.append($(this).html() + '\n');
         });
         
@@ -78,10 +78,10 @@
       }
       
       function bindRemoveClicks(wrapper) {
-        $(wrapper).find('.predicate-remove:not(.predicate-process)').click(function(){
+        $(wrapper).find('.term-remove:not(.term-process)').click(function(){
           $(this).parent().remove();
           updateStore(wrapper);          
-        }).addClass('.predicate-process');
+        }).addClass('.term-process');
 
       }
             
@@ -92,22 +92,22 @@
     saved_class = '';
     saved_text = '';
     if (!saved) {
-      saved_class = ' predicate-unsaved';
+      saved_class = ' term-unsaved';
       saved_text = '<span class="warning">*</span>';
     }
-    return '<span class="predicate'+ saved_class +'"><span class="predicate-val">' + val + '</span>'+
-    saved_text +' <span class="predicate-remove">x</span></span>';
+    return '<span class="term'+ saved_class +'"><span class="term-val">' + val + '</span>'+
+    saved_text +' <span class="term-remove">x</span></span>';
   }
   
   Drupal.theme.prototype.rdfPredicatesWidget = function(context, index) {
     var wrapper = $(context);
     var basepath = Drupal.settings.basePath;
-    var description = jQuery('.predicate-store + .description').eq(0);
+    var description = jQuery('.term-store + .description').eq(0);
     var html_output ='<div id="" class="form-item predicates-widget">' +
-      '<div class="predicate-holder"></div>' +
-      '<input type="text" class="predicate-entry form-autocomplete" size="30" id="rdfui-predicate-edit-'+ index +'" />' +
-      '<input type="submit" value="' + Drupal.t('Add') + '" class="form-submit predicate-add" id="rdfui-predicate-edit-button-'+ index +'">' +
-      '<input class="autocomplete" type="hidden" id="rdfui-predicate-edit-'+ index +'-autocomplete" ' +
+      '<div class="term-holder"></div>' +
+      '<input type="text" class="term-entry form-autocomplete" size="30" id="rdfui-term-edit-'+ index +'" />' +
+      '<input type="submit" value="' + Drupal.t('Add') + '" class="form-submit term-add" id="rdfui-term-edit-button-'+ index +'">' +
+      '<input class="autocomplete" type="hidden" id="rdfui-term-edit-'+ index +'-autocomplete" ' +
       'value="' + basepath + '/rdfui/predicates/autocomplete" disabled="disabled" />' +
       '<div class="description">' + description.text() + '</div>' +
     '</div>';

@@ -1,3 +1,0 @@
-- Added help info for main help page
-- Fixed bug introduced in commit from 1-18 (Issue 5)
-- Changed test parameters to real parameters in rdfui_admin_rdf_overview_form_submit

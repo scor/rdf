@@ -6,7 +6,7 @@
  * User interface for RDF.
  */
  
-define('RDFUI_TERM_REGEX',"/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/");
+define('RDFUI_CURIE_REGEX',"/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/");
  
 /**
  * Implements hook_help().
@@ -120,7 +120,7 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, 
   $form['field_names'] = array('#type' => 'value', '#value' => array_keys($fields));
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save RDF mapping'));
   
-  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_TERM_REGEX)), 'setting');
+  drupal_add_js(array('rdfui'=>array('termRegex'=>RDFUI_CURIE_REGEX)), 'setting'); 
 
   return $form;
 }
@@ -151,7 +151,7 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_field_ui_field_edit_form_validate'));
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_field_ui_field_edit_form_submit'));
   
-  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_TERM_REGEX)), 'setting');
+  drupal_add_js(array('rdfui'=>array('termRegex'=>RDFUI_CURIE_REGEX)), 'setting');
 }
 
 /**
@@ -197,7 +197,7 @@ function rdfui_form_node_type_form_alter(&$form, &$form_state) {
   $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_node_type_form_validate'));
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_node_type_form_submit'));
   
-  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_TERM_REGEX)), 'setting');
+  drupal_add_js(array('rdfui'=>array('termRegex'=>RDFUI_CURIE_REGEX)), 'setting');
 }
 
 
@@ -315,7 +315,7 @@ function rdfui_predicate_fieldset(&$fieldset, $mapping, $field_name, $label) {
     '#default_value' => empty($mapping[$field_name]['predicates']) ? '' : implode("\n",$mapping[$field_name]['predicates']),
     '#description' => t('Enter the predicate mappings for @label here. Predicates should be listed in CURIE syntax, with the vocabulary namespace and predicate. For example, foaf:name.', array('@label' => $label)),
     '#resizable' => FALSE,
-    '#attributes' => array('class' => array('predicate-store'))
+    '#attributes' => array('class' => array('term-store'))
   );
   
   // @todo Possibly autocomplete the builtin xsd datatypes, but do not restrict to xsd datatypes.
@@ -357,7 +357,7 @@ function rdfui_rdftype_fieldset(&$fieldset, $mapping) {
     '#default_value' => empty($mapping['rdftype']) ? '' : implode("\n",$mapping['rdftype']),
     '#description' => t('Enter the RDF type for the bundle here. Classes should be listed in CURIE syntax, with the vocabulary namespace and predicate. For example, sioc:Item.'),
     '#resizable' => FALSE,
-    '#attributes' => array('class' => array('predicate-store'))
+    '#attributes' => array('class' => array('term-store'))
   );
     
 }
@@ -376,7 +376,7 @@ function _rdfui_validate_terms($form_state, $field_name = '') {
     $error = '';
     foreach($terms as $term) {
       $term = trim($term);      
-      if (!preg_match(RDFUI_TERM_REGEX, $term)){
+      if (!preg_match(RDFUI_CURIE_REGEX, $term)){
         // @todo Add a page to the drupal docs about CURIE format and adding
         // namespaces. Then add a link to this error that says 'For more info'.
         $error .= t('Term %term must be in CURIE format.', array('%term'=>$term));
@@ -396,7 +396,7 @@ function _rdfui_validate_datatype($form_state, $field_name) {
 
   // validate datatype
   if ($datatype = trim($form_state['values']['rdf_'. $field_name .'_datatype'])) {
-    if(!preg_match(RDFUI_TERM_REGEX, $datatype))    
+    if(!preg_match(RDFUI_CURIE_REGEX, $datatype))    
       form_set_error('rdf_'. $field_name .'_datatype', t('Datatype %datatype is an invalid format.', array('%datatype'=>$datatype)));
   }
 
@@ -407,9 +407,9 @@ function _rdfui_validate_datatype($form_state, $field_name) {
  */
 
 function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
-  // Merges this field's mapping with the other fields' updated mappings.
+  
+  // @ todo Why would we need this mapping_load? I think we don't
   $mapping = rdf_mapping_load($object_type, $bundle);
-
   // Set the RDF type if it is in this form.
   if (isset($form_state['values']['rdf_rdftype'])) {
     $mapping['rdftype'] = array_unique(explode("\n",$form_state['values']['rdf_rdftype']));;
@@ -425,6 +425,7 @@ function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
     'type' => $object_type,
     'bundle' => $bundle
   );
-
+  //dpm($mapping_info);
   rdf_mapping_save($mapping_info);
+
 }
