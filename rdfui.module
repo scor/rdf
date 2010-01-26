@@ -15,6 +15,11 @@ function rdfui_help($path, $arg) {
   switch ($path) {
     case 'admin/structure/types/manage/%/rdf':
       return '<p>' . t('Help text', array()) . '</p>';
+    case 'admin/help#rdf':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The RDF UI module provides a user interface for altering a bundle\'s RDF mapping.') . '</p>';
+    return $output;
   }
 }
 
@@ -49,7 +54,8 @@ function rdfui_menu() {
           
           $items["$path/rdf"] = array(
             'title' => t('Manage RDF Mappings'),
-            'load arguments' => array($obj_type, $bundle_arg),
+            // @todo Load arguments are not necessary / are cruft, right?
+            //'load arguments' => array($obj_type, $bundle_arg),
             'page callback' => 'drupal_get_form',
             'page arguments' => array('rdfui_admin_rdf_overview_form', $obj_type, $bundle_arg, $instance_position),
             'type' => MENU_LOCAL_TASK,
@@ -84,7 +90,6 @@ function rdfui_menu() {
  * fields to be mapped to RDF properties.
  */
 function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, $instance) {
-  
   $fields = field_info_instances($obj_type, $bundle->type);
   
   $mapping = rdf_mapping_load($obj_type, $bundle->type); 
@@ -115,8 +120,8 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $obj_type, $bundle, 
   $form['field_names'] = array('#type' => 'value', '#value' => array_keys($fields));
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save RDF mapping'));
   
-  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_TERM_REGEX)), 'setting'); 
-  
+  drupal_add_js(array('rdfui'=>array('predicateRegex'=>RDFUI_TERM_REGEX)), 'setting');
+
   return $form;
 }
 
@@ -233,8 +238,12 @@ function rdfui_form_node_type_form_validate($form, &$form_state) {
  * Saves RDF mapping for all fields and node type.
  */
 function rdfui_admin_rdf_overview_form_submit($form, &$form_state) {
+  $entity_type = $form_state['build_info']['args'][0];
+  $bundle = $form_state['build_info']['args'][1]->type;
+  _rdfui_mapping_save($form_state, $entity_type, $bundle, 'title');
+
   foreach ($form_state['values']['field_names'] as $field_name) {
-    _rdfui_mapping_save($form_state, 'node', 'article', $field_name);
+    _rdfui_mapping_save($form_state, $entity_type, $bundle, $field_name);
   }
 }
 
@@ -398,11 +407,9 @@ function _rdfui_validate_datatype($form_state, $field_name) {
  */
 
 function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
-  
-  // @ todo Why would we need this mapping_load? I think we don't
-  // $mapping = rdf_mapping_load($object_type, $bundle);
-  
-  $mapping = array();
+  // Merges this field's mapping with the other fields' updated mappings.
+  $mapping = rdf_mapping_load($object_type, $bundle);
+
   // Set the RDF type if it is in this form.
   if (isset($form_state['values']['rdf_rdftype'])) {
     $mapping['rdftype'] = array_unique(explode("\n",$form_state['values']['rdf_rdftype']));;
@@ -418,7 +425,6 @@ function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
     'type' => $object_type,
     'bundle' => $bundle
   );
-  
-  rdf_mapping_save($mapping_info);
 
+  rdf_mapping_save($mapping_info);
 }
