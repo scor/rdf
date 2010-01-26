@@ -1,0 +1,2 @@
+- Changed predicate to term where function is not predicate specific
+- Changed TERM_REGEX to CURIE_REGEX

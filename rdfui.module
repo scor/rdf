@@ -159,19 +159,14 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
  */
 function rdfui_form_node_type_form_alter(&$form, &$form_state) {
   $bundle = $form['type']['#default_value'];
-  
-  // The entity type is not available in the $form variable on the main node
-  // edit page. Therefore, we have to iterate through all entity types and find
-  // which entity the bundle is keyed to. However, because rdf_mapping is
-  // stored in the bundle's field info, we do not need to call rdf_mapping_load.
-  $entities = field_info_bundles();
-  foreach ($entities as $entity) {
-    $entity_name = key($entities);
-    if (in_array($bundle, array_keys($entity))){
-      $mapping = $entity[$bundle]['rdf_mapping'];
-      $form['rdf_entity'] = array('#type' => 'value', "#value" => $entity_name);
-    }
+  if ($bundle != NULL) {
+    $entity = entity_get_info('node');
+    $mapping = $entity['bundles'][$bundle]['rdf_mapping'];
   }
+  else {
+    $mapping = array();
+  }
+
   $form['rdf_settings'] = array(
     '#type' => 'fieldset',
     '#title' => 'RDF Settings',
@@ -262,8 +257,10 @@ function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
  * Saves RDF mapping for Title field.
  */
 function rdfui_form_node_type_form_submit($form, &$form_state) {
-  $entity_type = $form_state['values']['rdf_entity'];
-  $bundle = $form_state['values']['type'];
+  $entity_type = 'node';
+  $bundle = $form_state['input']['type'];
+  // We only need to call _rdfui_mapping_save once because it checks whether
+  // rdf_type is set in the form before saving the field value.
   _rdfui_mapping_save($form_state, $entity_type, $bundle, 'title');
 }
 
