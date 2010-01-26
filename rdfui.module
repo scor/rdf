@@ -158,13 +158,12 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
  * Implements hook_form_FORM_ID_alter().
  */
 function rdfui_form_node_type_form_alter(&$form, &$form_state) {
-  $bundle = $form['type']['#default_value'];
-  if ($bundle != NULL) {
+  $mapping = array();
+  // If we are editing an existing content type, the mapping will be available
+  // via the bundles in entity info.
+  if ($bundle = $form['type']['#default_value']) {
     $entity = entity_get_info('node');
     $mapping = $entity['bundles'][$bundle]['rdf_mapping'];
-  }
-  else {
-    $mapping = array();
   }
 
   $form['rdf_settings'] = array(

@@ -1,2 +1,2 @@
-- Changed predicate to term where function is not predicate specific
-- Changed TERM_REGEX to CURIE_REGEX
+- rdfui_form_node_type_form was overly generalized, we can assert that the
+  entity type is a node.
