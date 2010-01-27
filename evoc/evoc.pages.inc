@@ -49,8 +49,13 @@ function evoc_import_form($form_state) {
 }
 
 function evoc_import_form_validate($form, &$form_state) {
-  // Checks the prefix only contains letters.
-  // @todo
+  // Load the XML Namespace patterns.
+  module_load_include('inc', 'rdfx');
+  // Ensure the prefix is well formed according to the specification.
+  $prefix = $form_state['values']['prefix'];
+  if (!preg_match('/^' . PREFIX .'$/', $prefix)){
+    form_set_error('prefix', t('The prefix must follow the !link.', array('!link' => '<a href="http://www.w3.org/TR/xml-names11/#NT-NCName">XML Namespace Specification</a>')));
+  }
 }
 
 function evoc_import_form_submit($form, &$form_state) {
@@ -60,7 +65,7 @@ function evoc_import_form_submit($form, &$form_state) {
 
 //var_dump($form_state);
 
-  evoc_import_vocabulary($form_state['values']['ns_uri'], $form_state['values']['prefix']);
+  //evoc_import_vocabulary($form_state['values']['ns_uri'], $form_state['values']['prefix']);
 
   drupal_set_message(t('Your form has been saved...'));
 }
