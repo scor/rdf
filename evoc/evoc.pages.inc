@@ -49,11 +49,22 @@ function evoc_import_form($form_state) {
 }
 
 function evoc_import_form_validate($form, &$form_state) {
-  // Load the XML Namespace patterns.
+  // Load the XML Namespace regular expression patterns.
   module_load_include('inc', 'rdfx');
-  // Ensure the prefix is well formed according to the specification.
+  
   $prefix = $form_state['values']['prefix'];
-  if (!preg_match('/^' . PREFIX .'$/', $prefix)){
+  $ns_uri = $form_state['values']['ns_uri'];
+  
+  // Ensure the that namespace is a valid URI.
+  if (!filter_var($ns_uri, FILTER_VALIDATE_URL)) {
+    form_set_error('ns_uri', t('Namespace must be a valid URI.'));
+  }
+  // Ensure the namespace URI ends in either a / or a #.
+  if (!preg_match('/(\/|\#)$/', $ns_uri)) {
+    form_set_error('ns_uri', t('Namespace must end in either a / or a #.'));
+  }
+  // Ensure the prefix is well formed according to the specification.
+  if (!preg_match('/^' . PREFIX .'$/', $prefix)) {
     form_set_error('prefix', t('The prefix must follow the !link.', array('!link' => '<a href="http://www.w3.org/TR/xml-names11/#NT-NCName">XML Namespace Specification</a>')));
   }
 }

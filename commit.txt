@@ -1,1 +1,1 @@
-- Evoc: added validation for prefix on import form
+- Added validation for namespace URI.
