@@ -1,0 +1,65 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install, update and uninstall functions for the evoc module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function evoc_schema() {
+  $schema['evoc_rdf_properties'] = array(
+    'description' => 'Stores vocabularies imported by the External RDF Vocabulary Importer',
+      'fields' => array(
+           'tid' => array(
+             'description' => 'The term id.',
+             'type' => 'serial',
+             'not null' => TRUE,
+             'unsigned' => TRUE,
+           ),
+           'nsid' => array(
+             'description' => 'The namespace ID, used to join with rdfx_namespaces.',
+             'type' => 'int',
+             'not null' => TRUE,
+             'unsigned' => TRUE,
+           ),
+           'term' => array(
+             'description' => 'The term.',
+             'type' => 'varchar',
+             'length' => '32',
+             'not null' => TRUE,
+           ),
+           'label' => array(
+             'description' => 'A serialized array of labels, keyed by language.',
+             'type' => 'text',
+             'size' => 'big',
+             'not null' => TRUE,
+             'serialize' => TRUE,
+           ),
+           'comment' => array(
+             'description' => 'A serialized array of comments, keyed by language.',
+             'type' => 'text',
+             'size' => 'big',
+             'not null' => TRUE,
+             'serialize' => TRUE,
+           ),
+           'rdf_domain' => array(
+             'description' => 'A space delimited list of term ids in the domain\'s range.',
+             'type' => 'varchar',
+             'length' => '32',
+             'not null' => TRUE,
+           ),
+           'rdf_range' => array(
+             'description' => 'A space delimited list of term ids in the property\'s range.',
+             'type' => 'varchar',
+             'length' => '32',
+             'not null' => TRUE,
+           ),
+      ),
+      'primary key' => array('tid'),
+  );
+
+  return $schema;
+}

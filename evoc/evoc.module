@@ -26,11 +26,13 @@ function evoc_menu() {
  * Import function for the evoc module.
  */
 function evoc_import_vocabulary($vocabulary_uri, $vocabulary_prefix) {
-$fetched_terms = evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix);
-//var_dump($fetched_terms);
+  // Save the namespace to the namespace database table.
+  rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix);
+  // Refresh the static variable that holds the array of namespaces.
+  drupal_static_reset('rdfx_get_namespaces');
+  $fetched_terms = evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix);
 
-// @todo convert me to D7
-//  _evoc_save_rdf_terms($vocabulary_uri, $vocabulary_prefix, $fetched_terms);
+  _evoc_save_rdf_terms($vocabulary_uri, $vocabulary_prefix, $fetched_terms);
 }
 
 /**
@@ -51,26 +53,11 @@ $fetched_terms = evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix);
  *   An array of fetched terms.
  */
 function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_location = NULL, $ignore_base_ns = FALSE) {
-  global $rdf_namespaces;
-
-// @todo convert from D6.
-//  rdf_get_namespaces();
-
   // TODO make sure the URI is valid either finishing with / or #
   // TODO make sure the prefix and the terms are not containing any forbidden characters.
 
   // Uses the vocabulary namespace URI if no specific location is given.
   $vocabulary_location = $vocabulary_location ? $vocabulary_location : $vocabulary_uri;
-
-
-//   if (!in_array($vocabulary_uri, $rdf_namespaces)) {
-//     // Add momentarily the namespace in memory to be able to convert the URIs to QNames.
-//     $rdf_namespaces[$vocabulary_prefix] = $vocabulary_uri;
-//   }
-//   if ($ns_uri && !in_array($ns_uri, $rdf_namespaces)) {
-//     // Add momentarily the namespace in memory to be able to convert the URIs to QNames.
-//     $rdf_namespaces[$vocabulary_prefix] = $ns_uri;
-//   }
 
   // SPARQL queries are stored in an array.
   $term_queries = array();
@@ -114,20 +101,12 @@ function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_
   ");
 
 
-  // Loop through all the various queries in order to extract as many classes and properties as possible.
+  // Loop through all the various queries in order to extract as many classes
+  // and properties as possible.
   $fetched_terms = array();
   foreach ($term_queries as $query) {
-    $endpoint = 'http://demo.openlinksw.com/sparql/';
-    //$endpoint = 'http://www.sparql.org/sparql';
-    //$endpoint = 'http://jena.hpl.hp.com:2020/sparql';
-
     $datasets = array($vocabulary_location);
-
     $sparql_res = rdfx_sparql_request($query['query'], $datasets);
-
-echo "end of querying";
-return;
-
     if (!is_array($sparql_res)) {
       drupal_set_message("The SPARQL endpoint <a href=\"$endpoint\">$endpoint</a> returned an error. Please check it and make sure it allows to load from URIs via FROM clauses.", $type = 'warning', $repeat = FALSE);
     }
@@ -138,38 +117,38 @@ return;
       }
       elseif (isset($res_term['property'])) {
         $type = 'property';
-      };
-
-      $term_qname = rdf_uri_to_qname($res_term[$type]->uri);
+      }
+      // Get the prefix associated with this term's URI.
+      $term_qname = rdfx_uri_to_qname($res_term[$type]);
       $term_qname_parts = explode(':', $term_qname);
       $term_prefix = $term_qname_parts[0];
-
-      $term = array();
-      $term['id'] = $term_qname_parts[1];
-      $term['type'] = $type;
-      $term['label'] = !empty($res_term['label']->value) ? $res_term['label']->value : NULL;
-      $term['comment'] = !empty($res_term['comment']->value) ? $res_term['comment']->value : NULL;
-      switch ($type) {
-        case 'class' :
-          $term['superclass'] = !empty($res_term['superclass']->uri) ? rdf_uri_to_qname($res_term['superclass']->uri) : NULL;
-          break;
-
-        case 'property' :
-          // Extract some information like domain and range.
-          $term['rdf_domain'] = !empty($res_term['domain']->uri) ? rdf_uri_to_qname($res_term['domain']->uri) : NULL;
-          $term['rdf_range'] = !empty($res_term['range']->uri) ? rdf_uri_to_qname($res_term['range']->uri) : NULL;
-          break;
-
-      }
-
       // We only import the terms with the specified prefix unless $ignore_base_ns is TRUE.
       if ($term_prefix == $vocabulary_prefix || $ignore_base_ns) {
+        $term = array();
+        $term['id'] = $term_qname_parts[1];
+        $term['type'] = $type;
+        $term['label'] = !empty($res_term['label']->value) ? $res_term['label']->value : NULL;
+        $term['comment'] = !empty($res_term['comment']->value) ? $res_term['comment']->value : NULL;
+        switch ($type) {
+          case 'class' :
+            $term['superclass'] = !empty($res_term['superclass']->uri) ? rdf_uri_to_qname($res_term['superclass']->uri) : NULL;
+            break;
+  
+          case 'property' :
+            // Extract some information like domain and range.
+            $term['rdf_domain'] = !empty($res_term['domain']->uri) ? rdf_uri_to_qname($res_term['domain']->uri) : NULL;
+            $term['rdf_range'] = !empty($res_term['range']->uri) ? rdf_uri_to_qname($res_term['range']->uri) : NULL;
+            break;
+        }
+            // @TODO Clean up the terms to import and remove any duplicate? SPARQL should have done that already.
         $fetched_terms[] = $term;
       }
     }
-
   }
-  // @TODO Clean up the terms to import and remove any duplicate? SPARQL should have done that already.
-
   return $fetched_terms;
+}
+
+
+function _evoc_save_rdf_terms($vocabulary_uri, $vocabulary_prefix, $terms) {
+  return;
 }

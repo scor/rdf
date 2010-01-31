@@ -4,5 +4,6 @@ description = Extends the RDF API of Drupal core to support more RDF seralizatio
 package = RDF
 version = VERSION
 core = 7.x
+files[] = rdfx.install
 files[] = rdfx.module
 files[] = rdfx.inc

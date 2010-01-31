@@ -42,24 +42,24 @@ function rdfx_sparql_request($query, $datasets = array()) {
 
   // Attempts to execute the SPARQL query on a local ARC2 library.
   // MySQL is required.
+  
   $db_spec = $GLOBALS['databases']['default']['default'];
   if ($db_spec['driver'] = 'mysql' && class_exists('ARC2')) {
     // Sets up a local repository which is required for running SPARQL queries
     // with ARC2.
     $store = rdfx_arc2_init_store('rdfx_sparql');
-//var_dump($store);
+
     // Load each dataset in the store.
     foreach ($datasets as $url) {
       // @todo LOAD INTO <...>
       $q = "LOAD <$url>";
       $store->query($q);
     }
-    $q = 'SELECT * WHERE { ?s ?p ?o} LIMIT 50';
-    $rs = $store->query($q);
+    $rs = $store->query($query);
     if (!$store->getErrors()) {
-      //  $rows = $rs['result']['rows'];
-      var_dump($rs);
+      $rows = $rs['result']['rows'];
     }
+    return $rows;
     // Once we're done we drop the temporary data.
     $store->reset();
 
@@ -68,6 +68,78 @@ function rdfx_sparql_request($query, $datasets = array()) {
 
 }
 
+function rdfx_uri_to_qname ($uri) {
+  // If this isn't a valid URI, we cannot parse it.
+  if (!valid_url($uri)) {
+    return $uri;
+  }
+
+  $uri_parts = rdfx_uri_extract_parts($uri);
+  if (!empty($uri_parts['local_part'])) {
+    $prefix = rdfx_get_prefix($uri_parts['ns_uri']);
+    return $prefix . ':' . $uri_parts['local_part'];
+  }
+  else {
+    drupal_set_message('Error processing ' . $uri);
+  }
+}
+
+/*
+ * Finds the prefix assigned to a namespace URI.
+ */
+function rdfx_get_prefix($uri) {
+  $rdf_namespaces = rdfx_get_namespaces();
+  while ($namespace = current($rdf_namespaces)) {
+    if ($namespace == $uri) {
+      return key($rdf_namespaces);
+    }
+    next($rdf_namespaces);
+  }
+}
+
+/*
+ * Gets a list of all defined namespaces.
+ */
+function rdfx_get_namespaces() {
+  $rdf_namespaces = &drupal_static(__FUNCTION__);
+  if (empty($rdf_namespaces)) {
+    $rdf_namespaces = module_invoke_all('rdf_namespaces');
+  }
+  return $rdf_namespaces;
+}
+
+/*
+ * Extracts the vocabulary namespace URI and local part from a URI.
+ *
+ * @param $uri
+ *   URI to split.
+ * @return $uri_parts
+ *   An array containing the namespace uri ('ns_uri') and the 'local_part'.
+ */
+function rdfx_uri_extract_parts ($uri) {
+  // Local parts cannot contain '/' (slash) or '#' (hash). Therefore, we can
+  // split the URI at the last delimiter into the namespace URI and the local
+  // part. 
+  
+  $uri_parts = array();
+  // Since we have already tested to ensure this is a valid URL, we don't check
+  // for illegal characters. We use look ahead negation to make sure the hash
+  // is the last delimiting character.
+  $uri_split = preg_split('/(\S*#(?!.*#)(?!.*\/))/', $uri, NULL, PREG_SPLIT_DELIM_CAPTURE);
+  if (!empty($uri_split[1])) {
+    $uri_parts['ns_uri'] = $uri_split[1];
+    $uri_parts['local_part'] = $uri_split[2];
+  }
+  // If there is a slash after the last hash, it is a slash URI so we simply
+  // look for the last slash.
+  else {
+    $uri_split = preg_split('/(\S*\/(?!.*\/))/', $uri, NULL, PREG_SPLIT_DELIM_CAPTURE);
+    $uri_parts['ns_uri'] = $uri_split[1];
+    $uri_parts['local_part'] = $uri_split[2];
+  }
+  
+  return $uri_parts;
+}
 
 
 /**
@@ -103,10 +175,12 @@ function rdfx_arc2_init_store($name, $endpoint = FALSE) {
     'endpoint_max_limit' => 500, /* optional */
   );
 
-  /* instantiation */
+  // If this site is exposing a SPARQL endpoint, instantiate the endpoint with
+  // the endpoint class which can be used for HTTP-based data access.
   if ($endpoint) {
     $store = ARC2::getStoreEndpoint($config);
   }
+  // Otherwise, instantiate a locally accessible store.
   else {
     $store = ARC2::getStore($config);
   }
@@ -114,4 +188,38 @@ function rdfx_arc2_init_store($name, $endpoint = FALSE) {
     $store->setUp();
   }
   return $store;
+}
+
+/*
+ * Implements hook_rdf_namespaces.
+ */
+function rdfx_rdf_namespaces() {
+  $rdf_namespaces = db_query('SELECT prefix, uri FROM {rdfx_namespaces}')->fetchAllKeyed();
+  return $rdf_namespaces;
+}
+
+
+/**
+ * Saves an RDF prefix/namespace pair to the database.
+ *
+ * @param $vocabulary_uri
+ * @param $vocabulary_prefix
+ *   
+ * @return
+ *   Status flag indicating the outcome of the operation.
+ */
+function rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix) {
+  // @todo If a namespace is defined in a module, how will we avoid collision
+  // with namespaces defined by the user? For instance, if the user defines
+  // the 'media' ns as http://digitalbazaar.com/media but a module defines it as
+  // the Yahoo vocabulary. See Issue 8 on GitHub.
+  
+  $status = db_merge('rdfx_namespaces')
+    ->key(array(
+      'prefix' => $vocabulary_prefix,
+      'uri' => $vocabulary_uri,
+    ))
+    ->execute();
+    
+    return $status;
 }

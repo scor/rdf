@@ -1,0 +1,45 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install, update and uninstall functions for the rdfx module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function rdfx_schema() {
+  // RDF namespaces
+  $schema = array(
+    'rdfx_namespaces' => array(
+      'description' => t("RDF namespaces"),
+      'fields' => array(
+        // Even though the URI could be used as the ID, we set a numeric ID to
+        // improve performance.
+        'id' => array(
+          'description' => t('Namespace ID'),
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'prefix' => array(
+          'description' => t("Namespace prefix."),
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => TRUE,
+        ),
+        'uri' => array(
+          'description' => t("Namespace URI."),
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+        ),
+      ),
+      'primary key' => array('prefix'),
+      'unique keys' => array('id' => array('id')),
+      'indexes' => array('uri' => array('uri')),
+    ),
+  );
+  return $schema;
+}

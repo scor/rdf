@@ -1,1 +1,5 @@
-- Added validation for namespace URI.
+- evoc.pages.inc: changed filter_var to Drupal's valid_url
+- evoc_fetch_vocabulary mostly complete
+- evoc_import_vocabulary mostly complete
+- added support functions for evoc_import_vocabulary: rdfx_uri_to_qname, rdfx_get_prefix, rdfx_get_namespaces, and hook implementation rdfx_rdf_namespaces
+- created database schema for evoc_rdf_properties and rdfx_namespaces

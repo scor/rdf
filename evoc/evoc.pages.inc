@@ -56,12 +56,12 @@ function evoc_import_form_validate($form, &$form_state) {
   $ns_uri = $form_state['values']['ns_uri'];
   
   // Ensure the that namespace is a valid URI.
-  if (!filter_var($ns_uri, FILTER_VALIDATE_URL)) {
-    form_set_error('ns_uri', t('Namespace must be a valid URI.'));
+  if (!valid_url($ns_uri, $absolute = TRUE)) {
+    form_set_error('ns_uri', t('The Vocabulary URI must be a valid URI.'));
   }
   // Ensure the namespace URI ends in either a / or a #.
   if (!preg_match('/(\/|\#)$/', $ns_uri)) {
-    form_set_error('ns_uri', t('Namespace must end in either a / or a #.'));
+    form_set_error('ns_uri', t('The Vocabulary URI must end in either a / or a #.'));
   }
   // Ensure the prefix is well formed according to the specification.
   if (!preg_match('/^' . PREFIX .'$/', $prefix)) {
@@ -74,9 +74,7 @@ function evoc_import_form_submit($form, &$form_state) {
   $form_state['storage']['values'] = $form_state['values'];
   $form_state['rebuild'] = true;
 
-//var_dump($form_state);
-
-  //evoc_import_vocabulary($form_state['values']['ns_uri'], $form_state['values']['prefix']);
+  evoc_import_vocabulary($form_state['values']['ns_uri'], $form_state['values']['prefix']);
 
   drupal_set_message(t('Your form has been saved...'));
 }
