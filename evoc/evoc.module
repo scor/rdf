@@ -27,7 +27,12 @@ function evoc_menu() {
  */
 function evoc_import_vocabulary($vocabulary_uri, $vocabulary_prefix) {
   // Save the namespace to the namespace database table.
-  rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix);
+  // Prevent overriding an already defined prefix.
+  // @todo this is only a temporary work around, see rdfx_namespace_save()
+  $namespaces = rdfx_get_namespaces();
+  if (empty($namespaces[$vocabulary_prefix])) {
+    rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix);
+  }
   // Refresh the static variable that holds the array of namespaces.
   drupal_static_reset('rdfx_get_namespaces');
   $fetched_terms = evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix);
