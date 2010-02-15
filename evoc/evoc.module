@@ -124,7 +124,7 @@ function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_
         $type = 'property';
       }
       // Get the prefix associated with this term's URI.
-      $term_qname = rdfx_uri_to_qname($res_term[$type]);
+      $term_qname = rdfx_uri_to_qname2($res_term[$type]);
       $term_qname_parts = explode(':', $term_qname);
       $term_prefix = $term_qname_parts[0];
       // We only import the terms with the specified prefix unless $ignore_base_ns is TRUE.
@@ -132,17 +132,17 @@ function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_
         $term = array();
         $term['id'] = $term_qname_parts[1];
         $term['type'] = $type;
-        $term['label'] = !empty($res_term['label']->value) ? $res_term['label']->value : NULL;
-        $term['comment'] = !empty($res_term['comment']->value) ? $res_term['comment']->value : NULL;
+        $term['label'] = !empty($res_term['label']) ? $res_term['label'] : NULL;
+        $term['comment'] = !empty($res_term['comment']) ? $res_term['comment'] : NULL;
         switch ($type) {
           case 'class' :
-            $term['superclass'] = !empty($res_term['superclass']->uri) ? rdf_uri_to_qname($res_term['superclass']->uri) : NULL;
+            $term['superclass'] = !empty($res_term['superclass']) ? rdf_uri_to_qname($res_term['superclass']) : NULL;
             break;
-  
+
           case 'property' :
             // Extract some information like domain and range.
-            $term['rdf_domain'] = !empty($res_term['domain']->uri) ? rdf_uri_to_qname($res_term['domain']->uri) : NULL;
-            $term['rdf_range'] = !empty($res_term['range']->uri) ? rdf_uri_to_qname($res_term['range']->uri) : NULL;
+            $term['rdf_domain'] = !empty($res_term['domain']) ? rdfx_uri_to_qname2($res_term['domain']) : NULL;
+            $term['rdf_range'] = !empty($res_term['range']) ? rdfx_uri_to_qname2($res_term['range']) : NULL;
             break;
         }
             // @TODO Clean up the terms to import and remove any duplicate? SPARQL should have done that already.

@@ -100,7 +100,7 @@ function rdfx_sparql_request($query, $datasets = array()) {
 
   // Returns the errors if there are still no results at this stage.
   // @todo beware the query might have no result.
-  if (!rows) {
+  if (empty($rows)) {
     return $store->getErrors();
   }
 
@@ -144,6 +144,7 @@ function rdfx_get_namespaces() {
   if (empty($rdf_namespaces)) {
     $rdf_namespaces = module_invoke_all('rdf_namespaces');
   }
+  // @todo ensure there are no duplicates and that array is only one level.
   return $rdf_namespaces;
 }
 
@@ -283,4 +284,36 @@ function rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix) {
     ->execute();
 
   return $status;
+}
+
+// @todo merge this with rdfx_uri_to_qname()
+function rdfx_uri_to_qname2($uri, $gensym = TRUE, $fail = NULL) {
+  $rdf_namespaces = rdfx_get_namespaces();
+  $best_prefix = $best_match = '';
+
+  // Attempt to find the longest substring match
+  foreach ($rdf_namespaces as $prefix => $match) {
+    if (strpos($uri, $match) === 0 && strlen($match) > strlen($best_match)) {
+      $best_match = $match;
+      $best_prefix = $prefix;
+    }
+  }
+
+  // If successful, life is easy
+  if (!empty($best_prefix)) {
+    $local_part = substr($uri, strlen($best_match));
+    return implode(':', array($best_prefix, $local_part));
+  }
+
+  // No existing namespace prefix found, make one up
+  if ($gensym && preg_match('@([\w\d-_]+)$@', $uri, $matches)) {
+    static $gensym = 0;
+    $prefix = 'g.' . ++$gensym; // Good ol' Lisp tradition continues...
+    $local_part = $matches[1];
+    $rdf_namespaces[$prefix] = substr($uri, 0, -strlen($local_part));
+    return implode(':', array($prefix, $local_part));
+  }
+
+  //trigger_error('Could not convert URI ' . $uri . ' to QName', E_USER_WARNING);
+  return $fail;
 }
