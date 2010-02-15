@@ -49,6 +49,11 @@ function rdfx_init() {
 function rdfx_sparql_request($query, $datasets = array()) {
   // @todo Check if the datasets are available before trying to query them.
 
+  // Converts to array is string given.
+  if (!is_array($datasets)) {
+    $datasets = array($datasets);
+  }
+
   // Attempts to execute the SPARQL query on a local ARC2 library.
   // MySQL is required.
   $db_spec = $GLOBALS['databases']['default']['default'];
