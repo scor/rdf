@@ -87,15 +87,15 @@ function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_
   select *
   from <$vocabulary_uri>
   where {
-  {?property rdf:type owl:DatatypeProperty}
+  { ?property rdf:type owl:DatatypeProperty }
   union
-  {?property rdf:type owl:ObjectProperty}
+  { ?property rdf:type owl:ObjectProperty }
   union
-  {?property rdf:type rdf:Property.}.
-  OPTIONAL {?property rdfs:label ?label}.
-  OPTIONAL {?property rdfs:domain ?domain}.
-  OPTIONAL {?property rdfs:range ?range}.
-  OPTIONAL {?property rdfs:comment ?comment}.
+  { ?property rdf:type rdf:Property } .
+  OPTIONAL { ?property rdfs:label ?label } .
+  OPTIONAL { ?property rdfs:domain ?domain } .
+  OPTIONAL { ?property rdfs:range ?range } .
+  OPTIONAL { ?property rdfs:comment ?comment } .
   }
   limit 1000
   ");
