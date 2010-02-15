@@ -42,7 +42,7 @@ function rdfx_sparql_request($query, $datasets = array()) {
 
   // Attempts to execute the SPARQL query on a local ARC2 library.
   // MySQL is required.
-  
+
   $db_spec = $GLOBALS['databases']['default']['default'];
   if ($db_spec['driver'] = 'mysql' && class_exists('ARC2')) {
     // Sets up a local repository which is required for running SPARQL queries
@@ -119,8 +119,8 @@ function rdfx_get_namespaces() {
 function rdfx_uri_extract_parts ($uri) {
   // Local parts cannot contain '/' (slash) or '#' (hash). Therefore, we can
   // split the URI at the last delimiter into the namespace URI and the local
-  // part. 
-  
+  // part.
+
   $uri_parts = array();
   // Since we have already tested to ensure this is a valid URL, we don't check
   // for illegal characters. We use look ahead negation to make sure the hash
@@ -137,7 +137,7 @@ function rdfx_uri_extract_parts ($uri) {
     $uri_parts['ns_uri'] = $uri_split[1];
     $uri_parts['local_part'] = $uri_split[2];
   }
-  
+
   return $uri_parts;
 }
 
@@ -204,7 +204,7 @@ function rdfx_rdf_namespaces() {
  *
  * @param $vocabulary_uri
  * @param $vocabulary_prefix
- *   
+ *
  * @return
  *   Status flag indicating the outcome of the operation.
  */
@@ -213,13 +213,13 @@ function rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix) {
   // with namespaces defined by the user? For instance, if the user defines
   // the 'media' ns as http://digitalbazaar.com/media but a module defines it as
   // the Yahoo vocabulary. See Issue 8 on GitHub.
-  
+
   $status = db_merge('rdfx_namespaces')
     ->key(array(
       'prefix' => $vocabulary_prefix,
       'uri' => $vocabulary_uri,
     ))
     ->execute();
-    
+
     return $status;
 }
