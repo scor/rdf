@@ -36,18 +36,27 @@ function rdfx_init() {
 /**
  * Executes a SPARQL query on either a local SPARQL engine if available or
  * attempts to find a working public SPARQL endpoint on the web.
+ *
+ * @param $query
+ *   The SPARQL query to execute.
+ * @param $datasets
+ *   An array of datasets to query (optional). Implementation specific, i.e.
+ *   ARC2 seems to require them to be pre-LOADed while public endpoints load
+ *   FROM graphs automatically.
+ * @return
+ *   The SPARQL results.
  */
 function rdfx_sparql_request($query, $datasets = array()) {
-  // @todo Check if the datasets are responding before trying to query them.
+  // @todo Check if the datasets are available before trying to query them.
 
   // Attempts to execute the SPARQL query on a local ARC2 library.
   // MySQL is required.
-
   $db_spec = $GLOBALS['databases']['default']['default'];
   if ($db_spec['driver'] = 'mysql' && class_exists('ARC2')) {
     // Sets up a local repository which is required for running SPARQL queries
     // with ARC2.
-    $store = rdfx_arc2_init_store('rdfx_sparql');
+    // @todo randomize table name to support concurrent querying.
+    $store = rdfx_arc2_init_store('rdfx_sparql_tmp');
 
     // Load each dataset in the store.
     foreach ($datasets as $url) {
@@ -59,13 +68,38 @@ function rdfx_sparql_request($query, $datasets = array()) {
     if (!$store->getErrors()) {
       $rows = $rs['result']['rows'];
     }
-    return $rows;
     // Once we're done we drop the temporary data.
     $store->reset();
+  }
+  // Try to execute the query against a series of public SPARQL endpoints.
+  else {
+    $endpoints = array(
+      'http://www.sparql.org/sparql',
+      'http://demo.openlinksw.com/sparql/',
+    );
 
+    foreach ($endpoints as $endpoint) {
+      // Initialize connection with the endpoint.
+      $store = rdfx_arc2_init_remote_store($endpoint);
+
+      // Execute the query.
+      $rs = $store->query($query);
+      if (!$store->getErrors()) {
+        // Success!
+        $rows = $rs['result']['rows'];
+        // We have results so no point trying the other endpoints.
+        break;
+      }
+    }
   }
 
+  // Returns the errors if there are still no results at this stage.
+  // @todo beware the query might have no result.
+  if (!rows) {
+    return $store->getErrors();
+  }
 
+  return $rows;
 }
 
 function rdfx_uri_to_qname ($uri) {
@@ -84,7 +118,7 @@ function rdfx_uri_to_qname ($uri) {
   }
 }
 
-/*
+/**
  * Finds the prefix assigned to a namespace URI.
  */
 function rdfx_get_prefix($uri) {
@@ -97,7 +131,7 @@ function rdfx_get_prefix($uri) {
   }
 }
 
-/*
+/**
  * Gets a list of all defined namespaces.
  */
 function rdfx_get_namespaces() {
@@ -108,7 +142,7 @@ function rdfx_get_namespaces() {
   return $rdf_namespaces;
 }
 
-/*
+/**
  * Extracts the vocabulary namespace URI and local part from a URI.
  *
  * @param $uri
@@ -116,7 +150,7 @@ function rdfx_get_namespaces() {
  * @return $uri_parts
  *   An array containing the namespace uri ('ns_uri') and the 'local_part'.
  */
-function rdfx_uri_extract_parts ($uri) {
+function rdfx_uri_extract_parts($uri) {
   // Local parts cannot contain '/' (slash) or '#' (hash). Therefore, we can
   // split the URI at the last delimiter into the namespace URI and the local
   // part.
@@ -143,7 +177,7 @@ function rdfx_uri_extract_parts ($uri) {
 
 
 /**
- * Sets up an ARC2 RDF repository.
+ * Sets up an ARC2 RDF local repository.
  *
  * @param $name
  *   The name of the local repository.
@@ -187,10 +221,32 @@ function rdfx_arc2_init_store($name, $endpoint = FALSE) {
   if (!$store->isSetUp()) {
     $store->setUp();
   }
+
   return $store;
 }
 
-/*
+/**
+ * Sets up an ARC2 RDF remote store.
+ *
+ * @param $endpoint
+ *   The remote SPARQL endpoint.
+ * @return
+ *   An ARC2 store object.
+ */
+function rdfx_arc2_init_remote_store($endpoint) {
+  /* configuration */
+  $config = array(
+    /* remote endpoint */
+    'remote_store_endpoint' => $endpoint,
+  );
+
+  /* instantiation */
+  $store = ARC2::getRemoteStore($config);
+
+  return $store;
+}
+
+/**
  * Implements hook_rdf_namespaces.
  */
 function rdfx_rdf_namespaces() {
@@ -221,5 +277,5 @@ function rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix) {
     ))
     ->execute();
 
-    return $status;
+  return $status;
 }
