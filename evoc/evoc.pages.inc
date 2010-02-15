@@ -51,10 +51,10 @@ function evoc_import_form($form_state) {
 function evoc_import_form_validate($form, &$form_state) {
   // Load the XML Namespace regular expression patterns.
   module_load_include('inc', 'rdfx');
-  
+
   $prefix = $form_state['values']['prefix'];
   $ns_uri = $form_state['values']['ns_uri'];
-  
+
   // Ensure the that namespace is a valid URI.
   if (!valid_url($ns_uri, $absolute = TRUE)) {
     form_set_error('ns_uri', t('The Vocabulary URI must be a valid URI.'));
