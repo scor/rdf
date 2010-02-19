@@ -1,9 +1,10 @@
 ; $Id: $
 name = RDFx
-description = Extends the RDF API of Drupal core to support more RDF seralizations formats other RDF capabilities.
+description = Extends the RDF mapping API of Drupal core to provide more RDF seralizations formats and other RDF capabilities.
 package = RDF
 version = VERSION
 core = 7.x
 files[] = rdfx.install
 files[] = rdfx.module
+files[] = rdfx.pages.inc
 files[] = rdfx.inc
