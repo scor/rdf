@@ -5,7 +5,7 @@
  * @author Benjamin Nowack <bnowack@semsol.com>
  * @license http://arc.semsol.org/license
  * @package ARC2
- * @version 2009-10-16
+ * @version 2009-12-08
 */
 
 ARC2::inc('Class');
@@ -127,6 +127,7 @@ class ARC2_RemoteStore extends ARC2_Class {
     }
     $reader->closeStream();
     $ers = $reader->getErrors();
+    $this->a['reader_auth_infos'] = $reader->getAuthInfos();
     unset($this->reader);
     if ($ers) return array('errors' => $ers);
 		$mappings = array('rdfxml' => 'RDFXML', 'sparqlxml' => 'SPARQLXMLResult', 'turtle' => 'Turtle');

@@ -1,11 +1,12 @@
 <?php
-/*
-homepage: http://arc.semsol.org/
-license:  http://arc.semsol.org/license
-
-class:    ARC2 Web Reader
-author:   Benjamin Nowack
-version:  2009-08-17
+/**
+ * ARC2 Web Client
+ *
+ * @author Benjamin Nowack
+ * @license <http://arc.semsol.org/license>
+ * @homepage <http://arc.semsol.org/>
+ * @package ARC2
+ * @version 2009-12-08
 */
 
 ARC2::inc('Class');
@@ -34,6 +35,7 @@ class ARC2_Reader extends ARC2_Class {
     $this->timeout = $this->v('reader_timeout', 30, $this->a);
     $this->response_headers = array();
     $this->digest_auth = 0;
+    $this->auth_infos = $this->v('reader_auth_infos', array(), $this->a);
   }
 
   /*  */
@@ -91,30 +93,42 @@ class ARC2_Reader extends ARC2_Class {
         $username = $m[1];
         $pwd = $m[2];
         $auth = '';
-        $h = $this->v('www-authenticate', '', $this->getResponseHeaders());
+        $hs = $this->getResponseHeaders();
         /* 401 received */
+        $h = $this->v('www-authenticate', '', $hs);
         if ($h && preg_match('/Digest/i', $h)) {
           $auth = 'Digest ';
           /* Digest realm="$realm", nonce="$nonce", qop="auth", opaque="$opaque" */
           $ks = array('realm', 'nonce', 'opaque');/* skipping qop, assuming "auth" */
-          $qop = 'auth';
           foreach ($ks as $i => $k) {
             $$k = preg_match('/' . $k . '=\"?([^\"]+)\"?/i', $h, $m) ? $m[1] : '';
             $auth .= ($i ? ', ' : '') . $k . '="' . $$k . '"';
+            $this->auth_infos[$k] = $$k;
           }
+          $this->auth_infos['auth'] = $auth;
+          $this->auth_infos['request_count'] = 1;
+        }
+        /* 401 or repeated request */
+        if ($this->v('auth', 0, $this->auth_infos)) {
+          $qop = 'auth';
+          $auth = $this->auth_infos['auth'];
+          $rc = $this->auth_infos['request_count'];
+          $realm = $this->auth_infos['realm'];
+          $nonce = $this->auth_infos['nonce'];
           $ha1 = md5($username . ':' . $realm . ':' . $pwd);
           $ha2 = md5($this->http_method . ':' . $path);
-          $nc = '0001';     /* @@todo proper request counting */
-          $cnonce = '0123'; /* @@todo proper request counting */
+          $nc = dechex($rc);
+          $cnonce = dechex($rc * 2);
           $resp = md5($ha1 . ':' . $nonce . ':' . $nc . ':' . $cnonce . ':' . $qop . ':' . $ha2);
           $auth .= ', username="' . $username . '"' .
             ', uri="' . $path . '"' .
             ', qop=' . $qop . '' .
             ', nc=' . $nc .
-            ', cnonce="' . $cnonce . '"' .  /* @@todo proper request counting */
+            ', cnonce="' . $cnonce . '"' .
             ', uri="' . $path . '"' .
             ', response="' . $resp . '"' .
           '';
+          $this->auth_infos['request_count'] = $rc + 1;
         }
       }
       /* add header */
@@ -201,11 +215,21 @@ class ARC2_Reader extends ARC2_Class {
     if ($this->useProxy($url)) {
       $s = @fsockopen($this->a['proxy_host'], $this->a['proxy_port'], $errno, $errstr, $this->timeout);
     }
+    elseif (($parts['scheme'] == 'https') && function_exists('stream_socket_client')) {
+      // SSL options via config array, code by Hannes Muehleisen (muehleis@informatik.hu-berlin.de)
+  	  $context = stream_context_create();
+      foreach ($this->a as $k => $v) {
+        if (preg_match('/^arc_reader_ssl_(.+)$/', $k, $m)) {
+          stream_context_set_option($context, 'ssl', $m[1], $v);
+        }
+      }
+      $s = stream_socket_client('ssl://' . $parts['host'] . ':' . $parts['port'], $errno, $errstr, $this->timeout, STREAM_CLIENT_CONNECT, $context);
+    }
     elseif ($parts['scheme'] == 'https') {
       $s = @fsockopen('ssl://' . $parts['host'], $parts['port'], $errno, $errstr, $this->timeout);
     }
     elseif ($parts['scheme'] == 'http') {
-      $s = fsockopen($parts['host'], $parts['port'], $errno, $errstr, $this->timeout);
+      $s = @fsockopen($parts['host'], $parts['port'], $errno, $errstr, $this->timeout);
     }
     if (!$s) {
       return $this->addError('Socket error: Could not connect to "' . $url . '" (proxy: ' . ($this->useProxy($url) ? '1' : '0') . '): ' . $errstr);
@@ -222,7 +246,7 @@ class ARC2_Reader extends ARC2_Class {
     $this->response_headers = $h;
     if (!$this->ping_only) {
       do {
-        $line = trim(fgets($s, 256));
+        $line = trim(fgets($s, 4096));
         $info = stream_get_meta_data($s);
         if (preg_match("/^HTTP[^\s]+\s+([0-9]{1})([0-9]{2})(.*)$/i", $line, $m)) {/* response code */
           $error = in_array($m[1], array('4', '5')) ? $m[1] . $m[2] . ' ' . $m[3] : '';
@@ -232,7 +256,16 @@ class ARC2_Reader extends ARC2_Class {
           $h['redirect'] = ($m[1] == '3') ? true : false;
         }
         elseif (preg_match('/^([^\:]+)\:\s*(.*)$/', $line, $m)) {/* header */
-          $h[strtolower($m[1])] = trim($m[2]);
+          $h_name = strtolower($m[1]);
+          if (!isset($h[$h_name])) {/* 1st value */
+            $h[$h_name] = trim($m[2]);
+          }
+          elseif (!is_array($h[$h_name])) {/* 2nd value */
+            $h[$h_name] = array($h[$h_name], trim($m[2]));
+          }
+          else {/* more values */
+            $h[$h_name][] = trim($m[2]);
+          }
         }
       } while(!$info['timed_out'] && !feof($s) && $line);
       $h['format'] = strtolower(preg_replace('/^([^\s]+).*$/', '\\1', $this->v('content-type', '', $h)));
@@ -347,6 +380,10 @@ class ARC2_Reader extends ARC2_Class {
 
   function getRedirects() {
     return $this->redirects;
+  }
+
+  function getAuthInfos() {
+    return $this->auth_infos;
   }
   
   /*  */

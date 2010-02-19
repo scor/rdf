@@ -6,13 +6,13 @@
  * @license <http://arc.semsol.org/license>
  * @homepage <http://arc.semsol.org/>
  * @package ARC2
- * @version 2009-10-21
+ * @version 2010-01-15
 */
 
 class ARC2 {
 
   function getVersion() {
-    return '2009-10-21';
+    return '2010-01-15';
   }
 
   /*  */
@@ -133,20 +133,30 @@ class ARC2 {
   /*  */
 
   function splitURI($v) {
-    $parts = preg_match('/^(.*[\/\#])([^\/\#]+)$/', $v, $m) ? array($m[1], $m[2]) : array($v);
-    $specials = array(
-      'http://www.w3.org/XML/1998/namespace',
-      //'http://www.w3.org/1999/xhtml',
-    );
-    foreach ($specials as $ns) {
-      if (!$parts[0]) continue;
-      if (strpos($ns, $parts[0]) === 0) {
-        $suffix = substr($ns, strrpos($ns, '/')+1);
-        $parts[0] .= $suffix;
-        $parts[1] = substr($parts[1], strlen($suffix));
+    /* the following namespaces may lead to conflated URIs,
+     * we have to set the split position manually
+    */
+    if (strpos($v, 'www.w3.org')) {
+      $specials = array(
+        'http://www.w3.org/XML/1998/namespace',
+        'http://www.w3.org/2005/Atom',
+        'http://www.w3.org/1999/xhtml',
+      );
+      foreach ($specials as $ns) {
+        if (strpos($v, $ns) === 0) {
+          $local_part = substr($v, strlen($ns));
+          if (!preg_match('/^[\/\#]/', $local_part)) {
+            return array($ns, $local_part);
+          }
+        }
       }
     }
-    return $parts;
+    /* auto-splitting on / or # */
+    //$re = '^(.*?)([A-Z_a-z][-A-Z_a-z0-9.]*)$';
+    if (preg_match('/^(.*[\/\#])([^\/\#]+)$/', $v, $m)) return array($m[1], $m[2]);
+    /* auto-splitting on last special char, e.g. urn:foo:bar */
+    if (preg_match('/^(.*[\:\/])([^\:\/]+)$/', $v, $m)) return array($m[1], $m[2]);
+    return array($v, '');
   }
   
   /*  */
@@ -303,7 +313,7 @@ class ARC2 {
 
   /*  */
 
-  function getComponent($name, $a = '') {
+  function getComponent($name, $a = '', $caller = '') {
     ARC2::inc($name);
     $prefix = 'ARC2';
     if (preg_match('/^([^\_]+)\_(.+)$/', $name, $m)) {
@@ -311,7 +321,8 @@ class ARC2 {
       $name = $m[2];
     }
     $cls = $prefix . '_' . $name;
-    return new $cls($a, new stdClass());
+    if (!$caller) $caller = new stdClass();
+    return new $cls($a, $caller);
   }
   
   /* resource */
@@ -376,8 +387,8 @@ class ARC2 {
 
   /* store */
 
-  function getStore($a = '') {
-    return ARC2::getComponent('Store', $a);
+  function getStore($a = '', $caller = '') {
+    return ARC2::getComponent('Store', $a, $caller);
   }
 
   function getStoreEndpoint($a = '') {
@@ -416,6 +427,10 @@ class ARC2 {
 
   function getPOSHRDFSerializer($a = '') {
     return ARC2::getSer('POSHRDF', $a);
+  }
+
+  function getRSS10Serializer($a = '') {
+    return ARC2::getSer('RSS10', $a);
   }
 
   /* sparqlscript */
