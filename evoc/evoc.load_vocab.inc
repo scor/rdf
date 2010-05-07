@@ -15,10 +15,10 @@ function evoc_get_from_web($uri, $prefix) {
   if ($i !== false) {
     $schema_url = substr($schema_url, 0, $i);
   }
-  $content = _evoc_fetch_from_web($schema_url);
+  //$content = _evoc_fetch_from_web($schema_url);
   // @todo Why is this call here? It seems that $parser isn't used and a call
   // to the same function is on the next line.
-  $parser = _evoc_parse_rdfxml($schema_url, $content);
+  $parser = _evoc_parse_rdfxml($schema_url, '');
   list($triples, $namespaces) = _evoc_parse_rdfxml($uri, $content);
   return _evoc_extract_schema($triples, $namespaces, $prefix, $uri);
 }
@@ -151,16 +151,17 @@ function _evoc_fetch_from_web($uri) {
 
 function &_evoc_parse_rdfxml($base_uri, $rdf_content) {
   // Remove Byte Order Mark if present
-  if (strlen($rdf_content) >= 3 && ord($rdf_content[0]) == 0xEF && ord($rdf_content[1]) == 0xBB && ord($rdf_content[2]) == 0xBF) {
+  // This code fails on http://purl.org/ontology/bibo/
+  /*if (strlen($rdf_content) >= 3 && ord($rdf_content[0]) == 0xEF && ord($rdf_content[1]) == 0xBB && ord($rdf_content[2]) == 0xBF) {
     $rdf_content = substr($rdf_content, 3);
   }
   if (substr(ltrim($rdf_content), 0, 1) != '<') {
     throw new Exception("Parse error: File does not start with '<'");
-  }
+  }*/
 
   include_once(drupal_get_path('module', 'rdfx') . '/vendor/arc/ARC2.php');
   $parser = ARC2::getRDFXMLParser();
-  $parser->parse($base_uri, $rdf_content);
+  $parser->parse($base_uri);
   $namespaces = array();
   foreach ($parser->nsp as $uri => $prefix) {
     $namespaces[$prefix] = $uri;
