@@ -109,7 +109,7 @@ function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
       continue;
     }*/
     // @todo Make this work.
-    //$vocabulary['properties'][] = _evoc_query_for_property_description($model, $uri);
+    $vocabulary['properties'][] = _evoc_query_for_property_description($model, $uri);
   }
   
   // Add counts of classes and properties whose URIs don't begin with $ns_uri to $vocabulary['ignored_ns']
@@ -211,12 +211,10 @@ function _evoc_query_for_term_description(&$model, $uri) {
     array($uri, 'http://www.w3.org/2000/01/rdf-schema#comment', '?'),
   ));
 
-  $qname = _evoc_uri_to_qname($uri);
+  //$qname = _evoc_uri_to_qname($uri);
+  print_r('<br>Term Descrip' . $uri . '<br>');
   return array(
       'uri' => $uri,
-      'qname' => $qname,
-      'id' => substr($qname, strpos($qname, ':') + 1),
-      'prefix' => substr($qname, 0, strpos($qname, ':')),
       'label' => $label,
       'comment' => $comment,
   );
@@ -235,7 +233,9 @@ function _evoc_query_for_class_description(&$model, $uri) {
 }
 
 function _evoc_query_for_property_description(&$model, $uri) {
+  print_r('<br>' . $uri . '<br>');
   $property = _evoc_query_for_term_description($model, $uri);
+  print_r('<br>' . $uri . '<br>');
   $property['domains'] = _evoc_query_find_qnames($model, array(
     array($uri, 'http://www.w3.org/2000/01/rdf-schema#domain', '?')
   ));
@@ -255,7 +255,7 @@ function _evoc_query_for_property_description(&$model, $uri) {
     array($uri, 'http://www.w3.org/2002/07/owl#inverseOf', '?'),
     array('?', 'http://www.w3.org/2002/07/owl#inverseOf', $uri),
   ));
-
+  print_r($property);
 
   // @todo TODO We don't handle multiple inverses correctly everywhere yet, so store it both as an array and singleton
   $property['inverse'] = count($property['inverses']) ? $property['inverses'][0] : null;
