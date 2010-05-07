@@ -15,11 +15,7 @@ function evoc_get_from_web($uri, $prefix) {
   if ($i !== false) {
     $schema_url = substr($schema_url, 0, $i);
   }
-  //$content = _evoc_fetch_from_web($schema_url);
-  // @todo Why is this call here? It seems that $parser isn't used and a call
-  // to the same function is on the next line.
-  $parser = _evoc_parse_rdfxml($schema_url, '');
-  list($triples, $namespaces) = _evoc_parse_rdfxml($uri, $content);
+  list($triples, $namespaces) = _evoc_parse_rdfxml($uri);
   return _evoc_extract_schema($triples, $namespaces, $prefix, $uri);
 }
 
@@ -52,113 +48,7 @@ function _evoc_fetch_from_file($filename) {
   return file_get_contents($filename);
 }
 
-/**
- * Loads an RDF/XML file from an HTTP URI. Handles content negotiation
- * and various errors. Inspects the server's Content-Type header
- * to make reasonably sure that it actually is an RDF/XML file.
- *
- * @param $uri
- * @return Model
- * @throws Exception On network error
- */
-function _evoc_fetch_from_web($uri) {
-  $uri = trim($uri);
-  // check if it's an HTTP URI
-  if (!preg_match('!^http://!', $uri)) {
-    throw new Exception('Can only read from http:// URIs');
-  }
-  // create a custom context that sends an Accept header that asks for RDF/XML
-  $context = stream_context_create(array('http' => array(
-      'header' => 'Accept: application/rdf+xml, text/rdf+xml, text/xml;q=0.1, application/xml;q=0.1, text/plain;q=0.1',
-  )));
-  // read file contents
-  set_error_handler('_evoc_load__error_handler', E_WARNING);
-  try {
-    $content = file_get_contents($uri, FILE_BINARY, $context);
-  } catch (Exception $ex) {
-    $error = $ex->getMessage();
-    $offset = strrpos($error, ': ');
-    if ($offset) {
-      $error = substr($error, $offset + 2);
-    }
-  }
-  restore_error_handler();
-  if (empty($content)) {
-    // reading has failed.
-    if (empty($http_response_header)) {
-      // failure is NOT an HTTP error reported by the destination server,
-      // so we will use PHP's warning message
-      if ($error) {
-        throw new Exception('Failed to read from URI: ' . $error);
-      }
-      throw new Exception('Failed to read from URI');
-    }
-    // First http_response_header should be: 'HTTP/1.1 404 Not Found' or similar.
-    // Try to get only the '404 Not Found' part.
-    if (preg_match('/^[^ ]* (.*)/', $http_response_header[0], $match)) {
-      $http_error = $match[1];
-    } else {
-      $http_error = $http_response_header[0];
-    }
-    throw new Exception('Failed to read from URI: ' . $http_error);
-  }
-
-  // find media type by looking for a Content-Type header; default to application/rdf+xml
-  $media_type = null;
-  foreach (@$http_response_header as $header) {
-    $header = trim(strtolower($header));
-    if (preg_match('!^HTTP\/!i', $header)) {
-      // In case of redirects, headers of subsequent redirects are simply appended to the array.
-      // We are only interested in the last one, so reset.
-      $media_type = null;
-    }
-    if (preg_match('/^content-type *: *([a-z0-9\/+-]+)/', $header, $match)) {
-      $media_type = $match[1];
-    }
-  }
-  $extension = null;
-  if (preg_match('/\.([a-zA-Z0-9])$/', $uri, $match)) {
-    $extension = strtolower($match[1]);
-  }
-
-  // Sanity checks: Did we actually load some RDF/XML?
-  if ($media_type == 'application/rdf+xml' || $media_type == 'text/rdf' || $media_type == 'application/rdf') {
-    // Media type says RDF/XML, so let's try it
-  } else if ($extension == 'rdf' || $extension == 'rdfx' || $extension == 'owl') {
-    // Extension looks like RDF/XML, so let's try it
-  } else if (preg_match('!<rdf:RDF|http://www\.w3\.org/1999/02/22-rdf-syntax-ns#!', substr($content, 1000))) {
-    // Content smells like RDF/XML, so let's try it
-  } else if ($media_type == 'text/html' || $media_type == 'application/xhtml+xml') {
-    // Bad! This is HTML, not RDF/XML
-    throw new Exception('Server returned an HTML media type, but we can only process RDF/XML');
-  } else if (preg_match('/n3|turtle|ttl/', $media_type)) {
-    // Bad! This is N3 or Turtle, not RDF/XML
-    throw new Exception('Server returned a Turtle media type, but we can only process RDF/XML');
-  } else if (preg_match('/^\s*@prefix/', $content)) {
-    // Bad! This starts like a Turtle or N3 file
-    throw new Exception('This appears to be a Turtle document, but we can only process RDF/XML');
-  } else if (preg_match('/^x?html?$/', $media_type)) {
-    // Bad! This looks like HTML, not RDF/XML
-    throw new Exception('This appears to be an HTML document, but we can only process RDF/XML');
-  } else if ($media_type == 'text/plain' || $media_type == 'application/octet-stream') {
-    // Generic/default media types, might be OK
-  } else if ($media_type) {
-    throw new Exception("Can only process RDF/XML; reported media type was $media_type");
-  }
-
-  return $content;
-}
-
-function &_evoc_parse_rdfxml($base_uri, $rdf_content) {
-  // Remove Byte Order Mark if present
-  // This code fails on http://purl.org/ontology/bibo/
-  /*if (strlen($rdf_content) >= 3 && ord($rdf_content[0]) == 0xEF && ord($rdf_content[1]) == 0xBB && ord($rdf_content[2]) == 0xBF) {
-    $rdf_content = substr($rdf_content, 3);
-  }
-  if (substr(ltrim($rdf_content), 0, 1) != '<') {
-    throw new Exception("Parse error: File does not start with '<'");
-  }*/
-
+function &_evoc_parse_rdfxml($base_uri) {
   include_once(drupal_get_path('module', 'rdfx') . '/vendor/arc/ARC2.php');
   $parser = ARC2::getRDFXMLParser();
   $parser->parse($base_uri);
