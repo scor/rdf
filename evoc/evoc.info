@@ -7,4 +7,6 @@ version = VERSION
 core = 7.x
 files[] = evoc.module
 files[] = evoc.pages.inc
+files[] = evoc.load_vocab.inc
 files[] = evoc.install
+files[] = evoc.test

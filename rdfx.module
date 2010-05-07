@@ -98,8 +98,6 @@ function rdfx_sparql_request($query, $datasets = array()) {
     if (!$store->getErrors()) {
       $rows = $rs['result']['rows'];
     }
-    // Once we're done we drop the temporary data.
-    $store->reset();
   }
   // Try to execute the query against a series of public SPARQL endpoints.
   else {
@@ -218,6 +216,9 @@ function rdfx_uri_extract_parts($uri) {
  *   An ARC2 store object.
  */
 function rdfx_arc2_init_store($name, $endpoint = FALSE) {
+  // @todo fix this. Error reporting is off because ARC2 throws strict warnings.
+  error_reporting(0);
+  
   $db_spec = $GLOBALS['databases']['default']['default'];
 
   $config = array(
@@ -281,8 +282,8 @@ function rdfx_arc2_init_remote_store($endpoint) {
  * Implements hook_rdf_namespaces.
  */
 function rdfx_rdf_namespaces() {
-  $rdf_namespaces = db_query('SELECT prefix, uri FROM {rdfx_namespaces}')->fetchAllKeyed();
-  return $rdf_namespaces;
+  //$rdf_namespaces = db_query('SELECT prefix, uri FROM {rdfx_namespaces}')->fetchAllKeyed();
+  //return $rdf_namespaces;
 }
 
 
@@ -295,7 +296,7 @@ function rdfx_rdf_namespaces() {
  * @return
  *   Status flag indicating the outcome of the operation.
  */
-function rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix) {
+/*function rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix) {
   // @todo If a namespace is defined in a module, how will we avoid collision
   // with namespaces defined by the user? For instance, if the user defines
   // the 'media' ns as http://digitalbazaar.com/media but a module defines it as
@@ -309,6 +310,106 @@ function rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix) {
     ->execute();
 
   return $status;
+}*/
+
+/**
+ * Saves a vocabulary source and its namespace mappings to the database.
+ *
+ * @param $terms
+ *   Vocabulary terms and relationships. Terms should use full URIs.
+ * @param $vocabulary_uri
+ *   Source URI for the vocabulary.
+ * @param $prefix
+ *   (optional) Prefix for this vocabulary, defined by the user. Defaults to
+ *   NULL.
+ */
+function rdfx_save_vocabulary($terms, $vocabulary_uri, $prefix = NULL) {
+  $namespaces = array();
+  /* @todo Should we be including the actual source URI, or is the main_ns
+    appropriate?
+   
+   $vsid = db_select('rdfx_vocabulary_sources', 'rdfvs', array())
+    ->fields('rdfvs', array('vsid'))
+    ->condition('rdfvs.source_uri', $vocabulary_uri)
+    ->execute()
+    ->fetchField();*/
+  
+  // If the vocabulary URI matches the main_ns of a vocabulary source, then
+  // this is an update to that record. Otherwise, this is a newly imported
+  // source.
+  $vsids = db_select('rdfx_namespaces', 'rdfns', array());
+  $vsids->join('rdfx_vocabulary_sources', 'rdfvs', 'rdfvs.main_ns = rdfns.nsid');
+  $vsids
+    ->fields('rdfns', array('vsid'))
+    ->condition('rdfns.uri', $vocabulary_uri);
+  // @todo There should only be one result if there is a matching vocab source.
+  // However, perhaps we should test to make sure and throw an error?
+  $vsid = $vsids->execute()->fetchField();
+  
+  foreach ($terms as $term) {
+    
+  }
+  
+  // Yes, change prefix if necessary, add updated date, and update any of the
+  // other source namespace mappings that might have changed.
+  if ($vsid) {
+    // Update the existing vocabulary.
+    
+  }
+  // No, insert new namespace for this vocab, insert new vocab and point to
+  // new namespace, then enter other namespaces.
+  else {
+    // @todo If the vocab URI isn't used in any terms, don't add it to ns table.
+    // This may happen where multiple files are defining a vocabulary.
+    
+    // Insert this namespace to get the nsid. The vocabulary_source entry will
+    // point to this nsid for the main_ns. We temporarily insert 0 for the vsid,
+    // then update when we have the real vsid.
+    $nsid = db_insert('rdfx_namespaces')
+      ->fields(array('uri' => $vocabulary_uri, 'prefix' => $prefix, 'vsid' => '0'))
+      ->execute();
+    $vsid = db_insert('rdfx_vocabulary_sources')
+      ->fields(array('main_ns' => $nsid))
+      ->execute();
+    $status = db_update('rdfx_namespaces')
+      ->condition('nsid', $nsid)
+      ->fields(array('vsid' => $vsid))
+      ->execute();
+    // @todo Is there anyway to figure out the namespace prefix mapping defined in
+    // the source file? (see same todo in evoc.module). Do we even want prefixes
+    // for namespaces if they aren't the main namespace of a vocab?
+    
+    // Insert the other namespaces used in this vocabulary source.
+    if (isset($namespaces[0])) {      
+      $query = db_insert('rdfx_namespaces')
+      ->fields(array('uri' => $namespace, 'prefix' => '', 'vsid' => $vsid));
+      
+      foreach ($namespaces as $namespace) {
+        $query->values(array(
+          'uri' => $namespace,
+          'prefix' => '',
+          'vsid' => $vsid,
+        ));
+      }
+      $query->execute();
+    }
+  }
+  return $vsid;
+}
+
+
+/**
+ * Saves vocabulary terms.
+ *
+ * @param $terms
+ *   Vocabulary terms and relationships.
+ * @param $vocabulary_uri
+ *   Source URI for the vocabulary.
+ * @param $prefix
+ *   Prefix for this vocabulary, defined by the user.
+ */
+function rdfx_save_terms($terms, $vocabulary_uri, $prefix = NULL) {
+  $vsid = rdfx_save_vocabulary($terms, $vocabulary_uri, $prefix);
 }
 
 // @todo merge this with rdfx_uri_to_qname()

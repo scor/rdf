@@ -10,16 +10,37 @@
  * Implements hook_schema().
  */
 function rdfx_schema() {
-  // RDF namespaces
+  // @todo Include title, description (and/or comment?), versionInfo, seeAlso,
+  // modified, publisher
   $schema = array(
+    'rdfx_vocabulary_sources' => array(
+      'description' => t("Sources of the RDF statements."),
+      'fields' => array(
+        'vsid' => array(
+          'description' => t('Vocabulary Source ID.'),
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'main_ns' => array(
+          'description' => t("This source is the authoritative source for the main_ns."),
+          'type' => 'int',
+          'size' => 'small',
+        ),
+      ),
+      'primary key' => array('vsid'),
+    ),
     'rdfx_namespaces' => array(
       'description' => t("RDF namespaces"),
       'fields' => array(
-        // Even though the URI could be used as the ID, we set a numeric ID to
-        // improve performance.
-        'id' => array(
+        'nsid' => array(
           'description' => t('Namespace ID'),
           'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'vsid' => array(
+          'description' => t('Source ID, JOINs with the vocabulary_sources table to specify which document asserted this mapping.'),
+          'type' => 'int',
+          'size' => 'small',
           'not null' => TRUE,
         ),
         'prefix' => array(
@@ -36,9 +57,92 @@ function rdfx_schema() {
           'default' => '',
         ),
       ),
-      'primary key' => array('prefix'),
-      'unique keys' => array('id' => array('id')),
+      'unique keys' => array('nsid' => array('nsid')),
       'indexes' => array('uri' => array('uri')),
+    ),
+    'rdfx_terms' => array(
+      'description' => t("RDF classes and properties."),
+      'fields' => array(
+        'tid' => array(
+          'description' => t('Term ID'),
+          'type' => 'serial',
+          'not null' => TRUE,
+        ),
+        'nsid' => array(
+          'description' => t("Namespace ID, JOINs with the namespaces table."),
+          'type' => 'int',
+          'size' => 'small',
+          'not null' => TRUE,
+        ),
+        'localName' => array(
+          'description' => t("The term, excluding the namespace URI."),
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+        ),
+        'property' => array(
+          'description' => t("True if this term is a property, false if it is a class."),
+          'type' => 'int',
+          'size' => 'tiny',
+          'not null' => TRUE,
+        ),
+        'label' => array(
+          'description' => t("A serialized array of labels, keyed by language code."),
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+        ),
+      ),
+      'primary key' => array('tid'),
+    ),
+    'rdfx_property_domains' => array(
+      'description' => t("Domains of RDF properties."),
+      'fields' => array(
+        'tid' => array(
+          'description' => t("Term ID of the property."),
+          'type' => 'int',
+          'size' => 'medium',
+          'not null' => TRUE,
+        ),
+        'domain' => array(
+          'description' => t("Term ID of property's domain."),
+          'type' => 'int',
+          'size' => 'medium',
+        ),
+      ),
+    ),
+    'rdfx_property_ranges' => array(
+      'description' => t("Ranges of RDF properties."),
+      'fields' => array(
+        'tid' => array(
+          'description' => t("Term ID of the property."),
+          'type' => 'int',
+          'size' => 'medium',
+          'not null' => TRUE,
+        ),
+        'range' => array(
+          'description' => t("Term ID of property's range."),
+          'type' => 'int',
+          'size' => 'medium',
+        ),
+      ),
+    ),
+    'rdfx_superclasses' => array(
+      'description' => t("Superclasses of RDF classes."),
+      'fields' => array(
+        'tid' => array(
+          'description' => t("Term ID of the class."),
+          'type' => 'int',
+          'size' => 'medium',
+          'not null' => TRUE,
+        ),
+        'superclass' => array(
+          'description' => t("Term ID of class's superclass."),
+          'type' => 'int',
+          'size' => 'medium',
+        ),
+      ),
     ),
   );
   return $schema;

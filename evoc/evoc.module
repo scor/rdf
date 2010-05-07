@@ -26,18 +26,13 @@ function evoc_menu() {
  * Import function for the evoc module.
  */
 function evoc_import_vocabulary($vocabulary_uri, $vocabulary_prefix) {
-  // Save the namespace to the namespace database table.
-  // Prevent overriding an already defined prefix.
-  // @todo this is only a temporary work around, see rdfx_namespace_save()
-  $namespaces = rdfx_get_namespaces();
-  if (empty($namespaces[$vocabulary_prefix])) {
-    rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix);
-  }
+  // Fetch the defined terms and a list of the defined namespaces.
+  $fetched_vocab = evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix);
+  rdfx_save_terms($fetched_vocab, $vocabulary_uri, $vocabulary_prefix);
+  
   // Refresh the static variable that holds the array of namespaces.
   drupal_static_reset('rdfx_get_namespaces');
-  $fetched_terms = evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix);
-
-  _evoc_save_rdf_terms($vocabulary_uri, $vocabulary_prefix, $fetched_terms);
+  //_evoc_save_rdf_terms($vocabulary_uri, $vocabulary_prefix, $fetched_terms);
 }
 
 /**
@@ -51,109 +46,199 @@ function evoc_import_vocabulary($vocabulary_uri, $vocabulary_prefix) {
  * @param $vocabulary_location
  *   URL of the vocabulary if the vocabulary namespace does not dereference and
  *   is not available at the namespace. Optionnal.
- * @param $ignore_base_ns
- *   Set to TRUE if all the terms found in the vocabulary should be imported
- *   regardless of whether they belong to the namespace or not. Optionnal.
  * @return
  *   An array of fetched terms.
  */
-function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_location = NULL, $ignore_base_ns = FALSE) {
-  // TODO make sure the URI is valid either finishing with / or #
-  // TODO make sure the prefix and the terms are not containing any forbidden characters.
-
+function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_location = NULL) {
+  $vocabulary = array();
+  
+  $parser = ARC2::getRDFXMLParser();
+  $parser->parse($vocabulary_uri, file_get_contents('http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml'));
+  //dpm($parser);
+  
   // Uses the vocabulary namespace URI if no specific location is given.
   $vocabulary_location = $vocabulary_location ? $vocabulary_location : $vocabulary_uri;
 
   // SPARQL queries are stored in an array.
-  $term_queries = array();
   // Typical SPARQL queries to retrieve properties/classes, working for all major vocabularies...
-//   $term_queries[] = array('type' => 'class',
-//                      'query' => "
-//   prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-//   prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-//   prefix owl: <http://www.w3.org/2002/07/owl#>
-//   select *
-//   from <$vocabulary_uri>
-//   where {
-//   {?class rdf:type owl:Class}
-//   union
-//   {?class rdf:type rdfs:Class}.
-//   OPTIONAL {?class rdfs:label ?label}.
-//   OPTIONAL {?class rdfs:subClassOf ?superclass}.
-//   OPTIONAL {?class rdfs:comment ?comment}.
-//   }
-//   limit 1000
-//   ");
-  $term_queries[] = array('type' => 'property',
-                     'query' => "
-  prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-  prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-  prefix owl: <http://www.w3.org/2002/07/owl#>
-  select *
-  from <$vocabulary_uri>
-  where {
-  { ?property rdf:type owl:DatatypeProperty }
-  union
-  { ?property rdf:type owl:ObjectProperty }
-  union
-  { ?property rdf:type rdf:Property } .
-  OPTIONAL { ?property rdfs:label ?label } .
-  OPTIONAL { ?property rdfs:domain ?domain } .
-  OPTIONAL { ?property rdfs:range ?range } .
-  OPTIONAL { ?property rdfs:comment ?comment } .
-  }
-  limit 1000
-  ");
-
+  /*$queries[] = array(
+    'type' => 'class',
+    'query' => "
+      prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      prefix owl: <http://www.w3.org/2002/07/owl#>
+      select *
+      from <$vocabulary_uri>
+      where {
+      {?term rdf:type owl:Class}
+      union
+      {?term rdf:type rdfs:Class}.
+      OPTIONAL {?term rdfs:label ?label}.
+      OPTIONAL {?term rdfs:subClassOf ?superclass}.
+      OPTIONAL {?term rdfs:comment ?comment}.
+      }
+      limit 1000
+    "
+  );
+  $queries[] = array(
+    'type' => 'property',
+    'query' => "
+      prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      prefix owl: <http://www.w3.org/2002/07/owl#>
+      select *
+      from <$vocabulary_uri>
+      where {
+      { ?term rdf:type owl:DatatypeProperty }
+      union
+      { ?term rdf:type owl:ObjectProperty }
+      union
+      { ?term rdf:type rdf:Property } .
+      OPTIONAL { ?term rdfs:label ?label } .
+      OPTIONAL { ?term rdfs:domain ?domain } .
+      OPTIONAL { ?term rdfs:range ?range } .
+      OPTIONAL { ?term rdfs:comment ?comment } .
+      }
+      limit 1000
+    "
+  );
+  // We have to try both the URI with the hash/slash and without, because
+  // vocabularies like owl make assertions about the vocabulary usign the
+  // non-hash URI.
+  $vocabulary_uri_nohash = rtrim($vocabulary_uri, '/#');
+  $queries[] = array(
+    'type' => 'vocabulary_meta',
+    'query' =>"
+      prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      prefix owl: <http://www.w3.org/2002/07/owl#>
+      prefix vann: <http://purl.org/vocab/vann/>
+      select *
+      from <$vocabulary_uri>
+      where {
+      { ?uri rdf:type owl:Ontology}
+      union
+      { <$vocabulary_uri> ?p ?o  }
+      union
+      { <$vocabulary_uri_nohash> ?p ?o  }
+      }
+    "
+  );
+    $queries[] = array(
+    'type' => 'dbpedia',
+    'query' =>"
+      prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      prefix owl: <http://www.w3.org/2002/07/owl#>
+      prefix vann: <http://purl.org/vocab/vann/>
+      prefix dbp: <http://dbpedia.org/property/>
+      select *
+      from <http://dbpedia.org/sparql>
+      where {
+      { <http://dbpedia.org/resource/Semantic_Web> dbp:abstract ?val}
+      }
+      limit 100
+    "
+  );
 
   // Loop through all the various queries in order to extract as many classes
   // and properties as possible.
-  $fetched_terms = array();
-  foreach ($term_queries as $query) {
+  foreach ($queries as $query) {
     $datasets = array($vocabulary_location);
-    $sparql_res = rdfx_sparql_request($query['query'], $datasets);
-    if (!is_array($sparql_res)) {
+    $sparql_results[$query['type']] = rdfx_sparql_request($query['query'], $datasets);
+    if (!is_array($sparql_results)) {
       drupal_set_message("The SPARQL endpoint <a href=\"$endpoint\">$endpoint</a> returned an error. Please check it and make sure it allows to load from URIs via FROM clauses.", $type = 'warning', $repeat = FALSE);
     }
-    // Parse the SPARQL results and extract the relevant terms.
-    foreach ($sparql_res as $res_term) {
-      if (isset($res_term['class'])) {
-        $type = 'class';
+  }
+  
+  // We take out the vocabulary meta before processing the terms.
+  $vocabulary_meta = $sparql_results['vocabulary_meta'];
+  unset($sparql_results['vocabulary_meta']);*/
+  
+  module_load_include('inc', 'evoc', 'evoc.load_vocab');
+  $test = evoc_get_from_web($vocabulary_uri, $vocabulary_prefix);
+  dpm($test);
+  
+  // Process the terms from the ARC2 results into a usable array.
+  foreach ($sparql_results as $term_type => $terms) {
+    foreach($terms as $term) {
+      // @todo Handle terms with multiple domains. ARC2 returns a blank node.
+      
+      // Check to see if there are language codes set for comments and labels.
+      if (isset($term['label lang'])) {
+        // Remove the region code if it is used (i.e. en-US is changed to en).
+        $lang_array = explode('-', $term['label lang']);
+        $langcode = !empty($lang_array[0]) ? $lang_array[0] : $term['label lang'];
       }
-      elseif (isset($res_term['property'])) {
-        $type = 'property';
+      else {
+        // @todo Is the assumption appropriate that if no language is set,
+        // English is the default language?
+        $langcode = 'en';
       }
-      // Get the prefix associated with this term's URI.
-      $term_qname = rdfx_uri_to_qname2($res_term[$type]);
-      $term_qname_parts = explode(':', $term_qname);
-      $term_prefix = $term_qname_parts[0];
-      // We only import the terms with the specified prefix unless $ignore_base_ns is TRUE.
-      if ($term_prefix == $vocabulary_prefix || $ignore_base_ns) {
-        $term = array();
-        $term['id'] = $term_qname_parts[1];
-        $term['type'] = $type;
-        $term['label'] = !empty($res_term['label']) ? $res_term['label'] : NULL;
-        $term['comment'] = !empty($res_term['comment']) ? $res_term['comment'] : NULL;
-        switch ($type) {
-          case 'class' :
-            $term['superclass'] = !empty($res_term['superclass']) ? rdf_uri_to_qname($res_term['superclass']) : NULL;
-            break;
-
-          case 'property' :
-            // Extract some information like domain and range.
-            $term['rdf_domain'] = !empty($res_term['domain']) ? rdfx_uri_to_qname2($res_term['domain']) : NULL;
-            $term['rdf_range'] = !empty($res_term['range']) ? rdfx_uri_to_qname2($res_term['range']) : NULL;
-            break;
+      $vocabulary[$term_type][$term['term']]['label'][$langcode] = $term['label'];
+      
+      // We create an associative array based on the language code of the
+      // property. The language codes are specified in iso.inc.
+      if (isset($term['comment lang'])) {
+        // Chinese and Portuguese are the only languages with a >2 letter
+        // langcode.
+        if (preg_match('/(zh-hans)|(zh-hant)|(pt-pt)|(pt-br)/', $term['comment lang'])) {
+          $langcode = $term['comment lang'];
         }
-            // @TODO Clean up the terms to import and remove any duplicate? SPARQL should have done that already.
-        $fetched_terms[] = $term;
+        // Remove the region code if it is used (i.e. en-US is changed to en).
+        else {
+          $lang_array = explode('-', $term['comment lang']);
+          $langcode = !empty($lang_array[0]) ? $lang_array[0] : $term['comment lang'];
+        }
+      }
+      else {
+        // @todo Is the assumption appropriate that if no language is set,
+        // English is the default language?
+        $langcode = 'en';
+      }
+      $vocabulary[$term_type][$term['term']]['comment'][$langcode] = $term['comment'];
+      
+      // If this is a property, attach its domain and range.
+      if (isset($term['domain'])) {
+        if ($term['domain type'] == 'uri') {
+          $vocabulary[$term_type][$term['term']]['domain'][] = $term['domain'];
+        }
+      }
+      
+      if (isset($term['range'])) {
+        if ($term['range type'] == 'uri') {
+          $vocabulary[$term_type][$term['term']]['range'][] = $term['range'];
+        }
       }
     }
   }
-  return $fetched_terms;
+    
+    /*
+     @todo move this to save vocab.
+    // Get a list of the namespaces used in this vocabulary.
+    $split_term = rdfx_uri_extract_parts($res_term[$type]);
+    // @todo Is there anyway to figure out the namespace mapping defined in
+    // the source file?
+    if ($split_term['ns_uri'] != $vocabulary_uri) {
+      $namespaces[] = $split_term['ns_uri'];
+      }*/
+  //dpm($sparql_results);
+  //dpm($vocabulary);
+  return $sparql_res;
 }
 
 
 function _evoc_save_rdf_terms($vocabulary_uri, $vocabulary_prefix, $terms) {
-  return;
+  $status = db_merge('evoc_rdf_properties')
+    ->key(array(
+      'nsid' => 2,
+      'term' => 'term',
+      'label' => 'test',
+      'comment' => 'test',
+      'rdf_domain' => 'test',
+      'rdf_range' => 'test',
+    ))
+    ->execute();
+
+  return $status;
 }
