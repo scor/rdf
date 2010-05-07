@@ -83,11 +83,9 @@ function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
       'uri' => $ns_uri,
       'title' => _evoc_query_for_title($model, $ns_uri),
       'description' => _evoc_query_for_description($model, $ns_uri),
-      'body' => null,   // string with detailed HTML description
       'classes' => array(),
       'properties' => array(),
-      'ignored_ns' => array(),
-      'undefined_ns' => array(),
+      'namespaces' => $namespaces,
   );
 
   // Add description of each class to $vocabulary['classes']
@@ -105,28 +103,27 @@ function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
 
   // Add description of each property to $vocabulary['classes']
   $property_uris = _evoc_query_for_property_uris($model, $ns_uri);
-  foreach ($property_uris as $uri) {
-    //print_r($uri . '<br>');
-    if (substr($uri, 0, strlen($ns_uri)) != $ns_uri) {
+ foreach ($property_uris as $uri) {
+     /*if (substr($uri, 0, strlen($ns_uri)) != $ns_uri) {
       $ignored_uris[] = $uri;
       continue;
-    }
-    $vocabulary['properties'][] = _evoc_query_for_property_description($model, $uri);
-    //print_r($uri . '<br>');
+    }*/
+    // @todo Make this work.
+    //$vocabulary['properties'][] = _evoc_query_for_property_description($model, $uri);
   }
   
   // Add counts of classes and properties whose URIs don't begin with $ns_uri to $vocabulary['ignored_ns']
   foreach ($ignored_uris as $uri) {
-    if (!preg_match('!(.*[#/])[^#/]*$!', $uri, $match)) continue;
+    /*if (!preg_match('!(.*[#/])[^#/]*$!', $uri, $match)) continue;
     $ns = $match[1];
     if (!isset($vocabulary['ignored_ns'][$ns])) {
       $vocabulary['ignored_ns'][$ns] = 0;
     }
-    $vocabulary['ignored_ns'][$ns]++;
+    $vocabulary['ignored_ns'][$ns]++;*/
   }
 
   // Prefixes and URIs of referenced external namespaces that are not yet known to the system
-  $vocabulary['undefined_ns'] = _evoc_import_get_new_namespaces();
+  //$vocabulary['undefined_ns'] = _evoc_import_get_new_namespaces();
 
   return $vocabulary;
 }
