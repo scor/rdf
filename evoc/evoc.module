@@ -58,102 +58,6 @@ function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_
   
   // Uses the vocabulary namespace URI if no specific location is given.
   $vocabulary_location = $vocabulary_location ? $vocabulary_location : $vocabulary_uri;
-
-  // SPARQL queries are stored in an array.
-  // Typical SPARQL queries to retrieve properties/classes, working for all major vocabularies...
-  /*$queries[] = array(
-    'type' => 'class',
-    'query' => "
-      prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      prefix owl: <http://www.w3.org/2002/07/owl#>
-      select *
-      from <$vocabulary_uri>
-      where {
-      {?term rdf:type owl:Class}
-      union
-      {?term rdf:type rdfs:Class}.
-      OPTIONAL {?term rdfs:label ?label}.
-      OPTIONAL {?term rdfs:subClassOf ?superclass}.
-      OPTIONAL {?term rdfs:comment ?comment}.
-      }
-      limit 1000
-    "
-  );
-  $queries[] = array(
-    'type' => 'property',
-    'query' => "
-      prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      prefix owl: <http://www.w3.org/2002/07/owl#>
-      select *
-      from <$vocabulary_uri>
-      where {
-      { ?term rdf:type owl:DatatypeProperty }
-      union
-      { ?term rdf:type owl:ObjectProperty }
-      union
-      { ?term rdf:type rdf:Property } .
-      OPTIONAL { ?term rdfs:label ?label } .
-      OPTIONAL { ?term rdfs:domain ?domain } .
-      OPTIONAL { ?term rdfs:range ?range } .
-      OPTIONAL { ?term rdfs:comment ?comment } .
-      }
-      limit 1000
-    "
-  );
-  // We have to try both the URI with the hash/slash and without, because
-  // vocabularies like owl make assertions about the vocabulary usign the
-  // non-hash URI.
-  $vocabulary_uri_nohash = rtrim($vocabulary_uri, '/#');
-  $queries[] = array(
-    'type' => 'vocabulary_meta',
-    'query' =>"
-      prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      prefix owl: <http://www.w3.org/2002/07/owl#>
-      prefix vann: <http://purl.org/vocab/vann/>
-      select *
-      from <$vocabulary_uri>
-      where {
-      { ?uri rdf:type owl:Ontology}
-      union
-      { <$vocabulary_uri> ?p ?o  }
-      union
-      { <$vocabulary_uri_nohash> ?p ?o  }
-      }
-    "
-  );
-    $queries[] = array(
-    'type' => 'dbpedia',
-    'query' =>"
-      prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      prefix owl: <http://www.w3.org/2002/07/owl#>
-      prefix vann: <http://purl.org/vocab/vann/>
-      prefix dbp: <http://dbpedia.org/property/>
-      select *
-      from <http://dbpedia.org/sparql>
-      where {
-      { <http://dbpedia.org/resource/Semantic_Web> dbp:abstract ?val}
-      }
-      limit 100
-    "
-  );
-
-  // Loop through all the various queries in order to extract as many classes
-  // and properties as possible.
-  foreach ($queries as $query) {
-    $datasets = array($vocabulary_location);
-    $sparql_results[$query['type']] = rdfx_sparql_request($query['query'], $datasets);
-    if (!is_array($sparql_results)) {
-      drupal_set_message("The SPARQL endpoint <a href=\"$endpoint\">$endpoint</a> returned an error. Please check it and make sure it allows to load from URIs via FROM clauses.", $type = 'warning', $repeat = FALSE);
-    }
-  }
-  
-  // We take out the vocabulary meta before processing the terms.
-  $vocabulary_meta = $sparql_results['vocabulary_meta'];
-  unset($sparql_results['vocabulary_meta']);*/
   
   module_load_include('inc', 'evoc', 'evoc.load_vocab');
   $test = evoc_get_from_web($vocabulary_uri, $vocabulary_prefix);
@@ -212,18 +116,6 @@ function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_
       }
     }
   }
-    
-    /*
-     @todo move this to save vocab.
-    // Get a list of the namespaces used in this vocabulary.
-    $split_term = rdfx_uri_extract_parts($res_term[$type]);
-    // @todo Is there anyway to figure out the namespace mapping defined in
-    // the source file?
-    if ($split_term['ns_uri'] != $vocabulary_uri) {
-      $namespaces[] = $split_term['ns_uri'];
-      }*/
-  //dpm($sparql_results);
-  //dpm($vocabulary);
   return $sparql_res;
 }
 
