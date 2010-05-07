@@ -49,19 +49,12 @@ function evoc_import_vocabulary($vocabulary_uri, $vocabulary_prefix) {
  * @return
  *   An array of fetched terms.
  */
-function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_location = NULL) {
-  $vocabulary = array();
-  
-  $parser = ARC2::getRDFXMLParser();
-  $parser->parse($vocabulary_uri, file_get_contents('http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml'));
-  //dpm($parser);
-  
+function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_location = NULL) {  
   // Uses the vocabulary namespace URI if no specific location is given.
   $vocabulary_location = $vocabulary_location ? $vocabulary_location : $vocabulary_uri;
   
   module_load_include('inc', 'evoc', 'evoc.load_vocab');
-  $test = evoc_get_from_web($vocabulary_uri, $vocabulary_prefix);
-  dpm($test);
+  $vocabulary = evoc_get_from_web($vocabulary_uri, $vocabulary_prefix);
   
   // Process the terms from the ARC2 results into a usable array.
   foreach ($sparql_results as $term_type => $terms) {
