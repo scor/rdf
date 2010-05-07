@@ -1,0 +1,41 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Tests Evoc functionality.
+ */
+
+class VocabularyImportTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Vocab import',
+      'description' => 'Test vocabulary import.',
+      'group' => 'Evoc',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('rdf', 'rdfx', 'evoc');
+  }
+
+  /**
+   * Test that vocabulary is imported.
+   */
+  function testImport() {
+    $match = FALSE;
+    $vocab_uri = 'http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#';
+    $prefix = 'test';
+
+    evoc_import_vocabulary($vocab_uri, $prefix);
+    $result = db_query("SELECT uri, prefix FROM {rdfx_namespaces}");
+    foreach ($result as $record) {
+      if ($vocab_uri == $record->uri) {
+       $this->assertEqual($record->prefix, $prefix, t('Main NS has correct prefix.'));
+      }
+      else {
+       $this->assertEqual($record->prefix, '', t('Other namespaces do not have a prefix.'));
+      }
+    }
+  }
+}
