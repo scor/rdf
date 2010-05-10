@@ -28,7 +28,7 @@ function evoc_menu() {
 function evoc_import_vocabulary($vocabulary_uri, $vocabulary_prefix) {
   // Fetch the defined terms and a list of the defined namespaces.
   $fetched_vocab = evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix);
-  rdfx_save_terms($fetched_vocab, $vocabulary_uri, $vocabulary_prefix);
+  rdfx_save_terms($vocabulary_uri, $vocabulary_prefix, $fetched_vocab['namespaces']);
   
   // Refresh the static variable that holds the array of namespaces.
   drupal_static_reset('rdfx_get_namespaces');
@@ -55,8 +55,8 @@ function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_
   
   module_load_include('inc', 'evoc', 'evoc.load_vocab');
   $vocabulary = evoc_get_from_web($vocabulary_uri, $vocabulary_prefix);
-  
   // Process the terms from the ARC2 results into a usable array.
+  // @todo Move language handling to evoc.load_vocab.inc
   foreach ($sparql_results as $term_type => $terms) {
     foreach($terms as $term) {
       // @todo Handle terms with multiple domains. ARC2 returns a blank node.
@@ -109,21 +109,5 @@ function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_
       }
     }
   }
-  return $sparql_res;
-}
-
-
-function _evoc_save_rdf_terms($vocabulary_uri, $vocabulary_prefix, $terms) {
-  $status = db_merge('evoc_rdf_properties')
-    ->key(array(
-      'nsid' => 2,
-      'term' => 'term',
-      'label' => 'test',
-      'comment' => 'test',
-      'rdf_domain' => 'test',
-      'rdf_range' => 'test',
-    ))
-    ->execute();
-
-  return $status;
+  return $vocabulary;
 }
