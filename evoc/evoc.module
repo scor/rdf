@@ -28,7 +28,7 @@ function evoc_menu() {
 function evoc_import_vocabulary($vocabulary_uri, $vocabulary_prefix) {
   // Fetch the defined terms and a list of the defined namespaces.
   $fetched_vocab = evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix);
-  rdfx_save_terms($vocabulary_uri, $vocabulary_prefix, $fetched_vocab['namespaces']);
+  rdfx_save_terms($vocabulary_uri, $vocabulary_prefix, $fetched_vocab);
   
   // Refresh the static variable that holds the array of namespaces.
   drupal_static_reset('rdfx_get_namespaces');
