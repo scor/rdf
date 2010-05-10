@@ -10,140 +10,253 @@
  * Implements hook_schema().
  */
 function rdfx_schema() {
-  // @todo Include title, description (and/or comment?), versionInfo, seeAlso,
-  // modified, publisher
-  $schema = array(
-    'rdfx_vocabulary_sources' => array(
-      'description' => t("Sources of the RDF statements."),
-      'fields' => array(
-        'vsid' => array(
-          'description' => t('Vocabulary Source ID.'),
-          'type' => 'serial',
-          'not null' => TRUE,
-        ),
-        'main_ns' => array(
-          'description' => t("This source is the authoritative source for the main_ns."),
-          'type' => 'int',
-          'size' => 'small',
-        ),
+  $schema['rdfx_vocabulary_graph'] = array(
+    'description' => 'Vocabulary graph, including stubs for any external terms.',
+    'fields' => array(
+      'gid' => array(
+        'description' => 'Graph ID.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
       ),
-      'primary key' => array('vsid'),
-    ),
-    'rdfx_namespaces' => array(
-      'description' => t("RDF namespaces"),
-      'fields' => array(
-        'nsid' => array(
-          'description' => t('Namespace ID'),
-          'type' => 'serial',
-          'not null' => TRUE,
-        ),
-        'vsid' => array(
-          'description' => t('Source ID, JOINs with the vocabulary_sources table to specify which document asserted this mapping.'),
-          'type' => 'int',
-          'size' => 'small',
-          'not null' => TRUE,
-        ),
-        'prefix' => array(
-          'description' => t("Namespace prefix."),
-          'type' => 'varchar',
-          'length' => 64,
-          'not null' => TRUE,
-        ),
-        'uri' => array(
-          'description' => t("Namespace URI."),
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => TRUE,
-          'default' => '',
-        ),
+      'main_ns' => array(
+        'description' => 'The {rdfx_namespaces}.nid for this vocabulary.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
       ),
-      'unique keys' => array('nsid' => array('nsid')),
-      'indexes' => array('uri' => array('uri')),
-    ),
-    'rdfx_terms' => array(
-      'description' => t("RDF classes and properties."),
-      'fields' => array(
-        'tid' => array(
-          'description' => t('Term ID'),
-          'type' => 'serial',
-          'not null' => TRUE,
-        ),
-        'nsid' => array(
-          'description' => t("Namespace ID, JOINs with the namespaces table."),
-          'type' => 'int',
-          'size' => 'small',
-          'not null' => TRUE,
-        ),
-        'localName' => array(
-          'description' => t("The term, excluding the namespace URI."),
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => TRUE,
-        ),
-        'property' => array(
-          'description' => t("True if this term is a property, false if it is a class."),
-          'type' => 'int',
-          'size' => 'tiny',
-          'not null' => TRUE,
-        ),
-        'label' => array(
-          'description' => t("A serialized array of labels, keyed by language code."),
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => TRUE,
-          'default' => '',
-        ),
+      'date_created' => array(
+        'description' => 'The Unix timestamp when the vocabulary was created or imported.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
       ),
-      'primary key' => array('tid'),
-    ),
-    'rdfx_property_domains' => array(
-      'description' => t("Domains of RDF properties."),
-      'fields' => array(
-        'tid' => array(
-          'description' => t("Term ID of the property."),
-          'type' => 'int',
-          'size' => 'medium',
-          'not null' => TRUE,
-        ),
-        'domain' => array(
-          'description' => t("Term ID of property's domain."),
-          'type' => 'int',
-          'size' => 'medium',
-        ),
+      'date_updated' => array(
+        'description' => 'The Unix timestamp when the vocabulary was updated.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
       ),
     ),
-    'rdfx_property_ranges' => array(
-      'description' => t("Ranges of RDF properties."),
-      'fields' => array(
-        'tid' => array(
-          'description' => t("Term ID of the property."),
-          'type' => 'int',
-          'size' => 'medium',
-          'not null' => TRUE,
-        ),
-        'range' => array(
-          'description' => t("Term ID of property's range."),
-          'type' => 'int',
-          'size' => 'medium',
-        ),
-      ),
-    ),
-    'rdfx_superclasses' => array(
-      'description' => t("Superclasses of RDF classes."),
-      'fields' => array(
-        'tid' => array(
-          'description' => t("Term ID of the class."),
-          'type' => 'int',
-          'size' => 'medium',
-          'not null' => TRUE,
-        ),
-        'superclass' => array(
-          'description' => t("Term ID of class's superclass."),
-          'type' => 'int',
-          'size' => 'medium',
-        ),
-      ),
-    ),
+    'primary key' => array('gid'),
   );
+  
+  $schema['rdfx_namespaces'] = array(
+    'description' => 'Namespace mappings defined in the vocabulary graph. Mappings are defined on a per graph basis (i.e. foaf will be defined multiple times, once for each vocabulary graph that uses foaf terms).',
+    'fields' => array(
+      'nsid' => array(
+        'description' => 'Namespace ID.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'gid' => array(
+        'description' => 'The {rdfx_vocabulary_graph}.gid of the graph that defined this mapping.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'prefix' => array(
+        'description' => 'The prefix as defined by the user for the main namespace, and by the source file for the additional namespaces.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'uri' => array(
+        'description' => 'The URI as defined by the user for the main namespace, and by the source file for the additional namespaces.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('nsid'),
+  );
+  
+  $schema['rdfx_terms'] = array(
+    'description' => 'Terms defined or used in the vocabulary graph. Terms are stored on a per graph basis (i.e. foaf:Person will be stored once for each vocabulary graph that asserts something about it).',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'Term ID.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'nsid' => array(
+        'description' => 'The {rdfx_namespaces}.nsid for this term.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'local_name' => array(
+        'description' => 'The local name of this term.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('tid'),
+  );
+
+  $schema['rdfx_term_types'] = array(
+    'description' => 'The RDFS and OWL types that apply to the term. Only terms within the main_ns of a vocabulary graph should have term types.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the term.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The term type. Types should use defined constants.',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('tid', 'type'),
+  );
+
+  $schema['rdfx_vocabulary_details'] = array(
+    'description' => 'Additional information about a vocabulary.',
+    'fields' => array(
+      'gid' => array(
+        'description' => 'The {rdfx_vocabulary_graph}.gid of the vocabulary graph.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'language' => array(
+        'description' => 'The language code. Language codes should follow the format in _locale_get_predefined_list() in includes/iso.inc.',
+        'type' => 'varchar',
+        'length' => '12',
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The name of the vocabulary in language.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => 'The description of the vocabulary in language',
+        'type' => 'varchar',
+        'length' => '4095',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('gid', 'language'),
+  );
+
+  $schema['rdfx_term_details'] = array(
+    'description' => 'Additional information about a term. Only terms within the main_ns of a vocabulary graph should have term details.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the term.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'language' => array(
+        'description' => 'The language code. Language codes should follow the format in _locale_get_predefined_list() in includes/iso.inc.',
+        'type' => 'varchar',
+        'length' => '12',
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The label for term tid in language.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'comment' => array(
+        'description' => 'The comment for term tid in language',
+        'type' => 'varchar',
+        'length' => '4095',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('tid', 'language'),
+  );
+
+  $schema['rdfx_term_domains'] = array(
+    'description' => 'Domains of properties. Properties within the main_ns can declare classes outside of the main_ns as domains, but not vice versa.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the property.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'domain_tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the domain class.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('tid', 'domain_tid'),
+  );
+
+  $schema['rdfx_term_inverses'] = array(
+    'description' => 'Inverse properties.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the property.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'inverse_tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the inverse property.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('tid', 'inverse_tid'),
+  );
+
+  $schema['rdfx_term_ranges'] = array(
+    'description' => 'Ranges of properties. Properties within the main_ns can declare classes outside of the main_ns as ranges, but not vice versa.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the property.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'range_tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the range class.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('tid', 'range_tid'),
+  );
+
+  $schema['rdfx_term_superclasses'] = array(
+    'description' => 'Superclasses of classes. Classes within the main_ns can declare classes outside of the main_ns as superclasses, but not as subclasses.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the subclass.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'superclass_tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the superclass.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('tid', 'superclass_tid'),
+  );
+
   return $schema;
 }
