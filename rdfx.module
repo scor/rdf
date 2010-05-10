@@ -286,32 +286,6 @@ function rdfx_rdf_namespaces() {
   //return $rdf_namespaces;
 }
 
-
-/**
- * Saves an RDF prefix/namespace pair to the database.
- *
- * @param $vocabulary_uri
- * @param $vocabulary_prefix
- *
- * @return
- *   Status flag indicating the outcome of the operation.
- */
-/*function rdfx_namespace_save($vocabulary_uri, $vocabulary_prefix) {
-  // @todo If a namespace is defined in a module, how will we avoid collision
-  // with namespaces defined by the user? For instance, if the user defines
-  // the 'media' ns as http://digitalbazaar.com/media but a module defines it as
-  // the Yahoo vocabulary. See Issue 8 on GitHub.
-
-  $status = db_merge('rdfx_namespaces')
-    ->key(array(
-      'prefix' => $vocabulary_prefix,
-      'uri' => $vocabulary_uri,
-    ))
-    ->execute();
-
-  return $status;
-}*/
-
 /**
  * Saves the main namespace mapping for a vocabulary graph and the additional
  * namespace mappings as defined in the document.
