@@ -68,10 +68,13 @@ function rdfx_schema() {
         'description' => 'The URI as defined by the user for the main namespace, and by the source file for the additional namespaces.',
         'type' => 'varchar',
         'length' => '255',
-        'not null' => FALSE,
+        'not null' => TRUE,
       ),
     ),
     'primary key' => array('nsid'),
+    'unique keys' => array(
+      'gid_uri' => array('gid', 'uri'),
+    ),
   );
   
   $schema['rdfx_terms'] = array(
