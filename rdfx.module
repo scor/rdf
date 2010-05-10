@@ -258,6 +258,27 @@ function rdfx_arc2_init_store($name, $endpoint = FALSE) {
 }
 
 /**
+ * Sets up an ARC2 RDF remote store.
+ *
+ * @param $endpoint
+ *   The remote SPARQL endpoint.
+ * @return
+ *   An ARC2 store object.
+ */
+function rdfx_arc2_init_remote_store($endpoint) {
+  /* configuration */
+  $config = array(
+    /* remote endpoint */
+    'remote_store_endpoint' => $endpoint,
+  );
+
+  /* instantiation */
+  $store = ARC2::getRemoteStore($config);
+
+  return $store;
+}
+
+/**
  * Implements hook_rdf_namespaces.
  */
 function rdfx_rdf_namespaces() {
