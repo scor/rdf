@@ -260,6 +260,25 @@ function rdfx_schema() {
     ),
     'primary key' => array('tid', 'superclass_tid'),
   );
+  
+  $schema['rdfx_term_superproperties'] = array(
+    'description' => 'Superproperties of properties. Properties within the main_ns can declare properties outside of the main_ns as superproperties, but not as subproperties.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the subproperty.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'superproperty_tid' => array(
+        'description' => 'The {rdfx_terms}.tid of the superproperty.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('tid', 'superproperty_tid'),
+  );
 
   return $schema;
 }
