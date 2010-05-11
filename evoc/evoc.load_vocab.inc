@@ -181,6 +181,9 @@ function _evoc_query_for_terms(&$model) {
 }
 
 function _evoc_query_for_property_uris(&$model) {
+  // @todo Move all of the additional classes and property inferences to the
+  // rdfx_term_types array and delete this function.
+  
   /*return _evoc_query_find_uris($model, array(
     //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'),
     //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#DatatypeProperty'),
