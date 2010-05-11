@@ -87,20 +87,7 @@ function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
       'properties' => array(),
       'namespaces' => $namespaces,
   );
-
-  // Add description of each class to $vocabulary['classes']
-  $class_uris = _evoc_query_for_class_uris($model, $ns_uri);
-  $ignored_uris = array();
-  foreach ($class_uris as $uri) {
-    ////print_r($uri . '<br>');
-    if (substr($uri, 0, strlen($ns_uri)) != $ns_uri) {
-      $ignored_uris[] = $uri;
-      continue;
-    }
-    $vocabulary['classes'][] = _evoc_query_for_class_description($model, $uri);
-    ////print_r($uri . '<br>');
-  }
-
+// @todo Remove cruft, make this generalized.
   // Add description of each property to $vocabulary['classes']
   $terms = _evoc_query_for_terms($model);
   dpm($terms);
