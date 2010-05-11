@@ -102,7 +102,8 @@ function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
   }
 
   // Add description of each property to $vocabulary['classes']
-  $property_uris = _evoc_query_for_property_uris($model, $ns_uri);
+  $terms = _evoc_query_for_terms($model);
+  dpm($terms);
  foreach ($property_uris as $uri) {
      /*if (substr($uri, 0, strlen($ns_uri)) != $ns_uri) {
       $ignored_uris[] = $uri;
@@ -162,6 +163,23 @@ function _evoc_query_for_description(&$model, $ns_uri) {
   return _evoc_query_find_literal($model, $queries);
 }
 
+function _evoc_query_for_terms(&$model) {
+  $terms = array();
+  
+  $term_type_groups = rdfx_term_types();
+  foreach($term_type_groups as $term_type_groups => $term_types) {
+    foreach ($term_types as $term_type => $metadata) {
+      $query = array(
+        array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', $metadata['uri']),
+        array('?', $metadata['inference']['subject'], null),
+        array('?', $metadata['inference']['object'], null),
+      );
+      $terms[$term_type] = _evoc_query_find_uris($model, $query);
+    }
+  }
+  return $terms;
+}
+
 function _evoc_query_for_class_uris(&$model) {
   return _evoc_query_find_uris($model, array(
     array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2000/01/rdf-schema#Class'),
@@ -178,11 +196,11 @@ function _evoc_query_for_class_uris(&$model) {
 }
 
 function _evoc_query_for_property_uris(&$model) {
-  return _evoc_query_find_uris($model, array(
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#DatatypeProperty'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#ObjectProperty'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#FunctionalProperty'),
+  /*return _evoc_query_find_uris($model, array(
+    //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'),
+    //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#DatatypeProperty'),
+    //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#ObjectProperty'),
+    //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#FunctionalProperty'),
     array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#InverseFunctionalProperty'),
     array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#SymmetricProperty'),
     array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty'),
@@ -198,7 +216,7 @@ function _evoc_query_for_property_uris(&$model) {
     array(null, 'http://www.w3.org/2002/07/owl#equivalentProperty', '?'),
     array('?', 'http://www.w3.org/2002/07/owl#inverseOf', null),
     array(null, 'http://www.w3.org/2002/07/owl#inverseOf', '?'),
-  ));
+  ));*/
 }
 
 function _evoc_query_for_term_description(&$model, $uri) {
