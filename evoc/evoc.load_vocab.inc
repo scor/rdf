@@ -129,6 +129,7 @@ function _evoc_query_for_description(&$model, $ns_uri) {
 function _evoc_fetch_terms(&$model) {
   $terms = array();
   $term_uris = array();
+  $query_x = array();
   
   // Retrieve the queries for term retrieval. This may have been modified by
   // other modules.
@@ -139,14 +140,21 @@ function _evoc_fetch_terms(&$model) {
       $query = array(
         array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', $metadata['uri']),
         array('?', $metadata['inference']['subject'], null),
-        array('?', $metadata['inference']['object'], null),
+        array(null, $metadata['inference']['object'], '?'),
       );
       $term_uris[$term_type] = _evoc_query_find_uris($model, $query);
       
       // Add additional information about each term.
       foreach ($term_uris[$term_type] as $term_uri) {
         $terms[$term_type][] = _evoc_query_for_term_description(&$model, $term_uri);
+        foreach ($group['description'] as $label => $query_types) {
+          dpm($label);
+          foreach ($query_types['subject'] as $predicate) {
+            $query_x[$term_uri][$label][] = array($term_uri, $predicate, '?');
+          }
+          $x[$term_uri][$label] = _evoc_query_find_uris($model, $query_x[$term_uri][$label]);        }
       }
+      dpm($x);
     }
   }
   return $terms;
@@ -265,10 +273,10 @@ function _evoc_query_find_literal(&$model, $queries) {
         $lang_array = explode('-', $triple['o_lang']);
         $langcode = !empty($lang_array[0]) ? $lang_array[0] : $triple['o_lang'];
       }
-      $x[$langcode] = $triple['o'];
+      $literal[$langcode] = $triple['o'];
     }
   }
-  return $x;
+  return $literal;
 }
 
 function _evoc_query_find_uris(&$model, $queries) {

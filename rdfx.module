@@ -190,6 +190,8 @@ function rdfx_term_types($reset = FALSE) {
     $types['classes']['term_types'] = array();
     $types['properties']['term_types'] = array();
     
+    $term_details = '';
+    
     // @todo Should the inference consider subProp and subClass relationships
     // as well. ie. should all OWL classes also have the type RDFS Class
     $types['classes']['term_types']['rdfs_class'] = array(
@@ -241,6 +243,33 @@ function rdfx_term_types($reset = FALSE) {
       'uri' => 'http://www.w3.org/2002/07/owl#ObjectProperty',
       'inference' => array(
         'subject' => array(
+        ),
+        'object' => array(
+        ),
+      ),
+    );
+    
+    $types['classes']['description'] = array(
+      /*'domain' => array(
+        'subject' => array(
+          'http://www.w3.org/2000/01/rdf-schema#domain',
+        ),
+        'object' => array(
+        ),
+      ),*/
+    );
+    
+    $types['properties']['description'] = array(
+      'domain' => array(
+        'subject' => array(
+          'http://www.w3.org/2000/01/rdf-schema#domain',
+        ),
+        'object' => array(
+        ),
+      ),
+      'range' => array(
+        'subject' => array(
+          'http://www.w3.org/2000/01/rdf-schema#range',
         ),
         'object' => array(
         ),
