@@ -75,9 +75,6 @@ function _evoc_load__error_handler($errno, $errstr) {
  * @return array Array describing the vocabulary, its classes and properties.
  */
 function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
-
-  _evoc_prepare_import_namespaces($ns_uri, $ns_prefix, $namespaces);
-
   $vocabulary = array(
       'prefix' => $ns_prefix,
       'uri' => $ns_uri,
@@ -89,7 +86,7 @@ function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
   );
 // @todo Remove cruft, make this generalized.
   // Add description of each property to $vocabulary['classes']
-  $terms = _evoc_query_for_terms($model);
+  $terms = _evoc_fetch_terms($model);
   dpm($terms);
  foreach ($property_uris as $uri) {
      /*if (substr($uri, 0, strlen($ns_uri)) != $ns_uri) {
@@ -99,19 +96,6 @@ function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
     // @todo Make this work.
     $vocabulary['properties'][] = _evoc_query_for_property_description($model, $uri);
   }
-  
-  // Add counts of classes and properties whose URIs don't begin with $ns_uri to $vocabulary['ignored_ns']
-  foreach ($ignored_uris as $uri) {
-    /*if (!preg_match('!(.*[#/])[^#/]*$!', $uri, $match)) continue;
-    $ns = $match[1];
-    if (!isset($vocabulary['ignored_ns'][$ns])) {
-      $vocabulary['ignored_ns'][$ns] = 0;
-    }
-    $vocabulary['ignored_ns'][$ns]++;*/
-  }
-
-  // Prefixes and URIs of referenced external namespaces that are not yet known to the system
-  //$vocabulary['undefined_ns'] = _evoc_import_get_new_namespaces();
 
   return $vocabulary;
 }
@@ -150,7 +134,7 @@ function _evoc_query_for_description(&$model, $ns_uri) {
   return _evoc_query_find_literal($model, $queries);
 }
 
-function _evoc_query_for_terms(&$model) {
+function _evoc_fetch_terms(&$model) {
   $terms = array();
   
   $term_type_groups = rdfx_term_types();
@@ -321,37 +305,6 @@ function _evoc_query_find_all(&$model, $s, $p, $o) {
     $result[] = $triple;
   }
   return $result;
-}
-
-/**
- * Prepares the importer's namespace tracking.
- *
- * @param string $ns_uri Namespace URI of the vocabulary being imported
- * @param string $ns_prefix Namespace prefix of the vocabulary being imported
- * @param array $parsed_namespaces Associative array containing the namespaces parsed from the RDF file
- */
-function _evoc_prepare_import_namespaces($ns_uri, $ns_prefix, $parsed_namespaces) {
-  global $evoc_import_namespaces;
-  $evoc_import_namespaces = array();
-  $prefixes = array();
-  $namespaces = rdfx_get_namespaces();
-  foreach ($namespaces as $p => $u) {
-    if (is_array($u)) {
-      $u = $u[0];
-    }
-    $evoc_import_namespaces[$u] = array('prefix' => $p);
-    $prefixes[] = $p;
-  }
-  $evoc_import_namespaces[$ns_uri] = array('prefix' => $ns_prefix, 'importing' => true);
-  // @todo Change this to the namespace save.
-  /*rdf_register_namespace($ns_prefix, $ns_uri);
-  $prefixes[] = $ns_prefix;
-  foreach ($parsed_namespaces as $u => $p) {
-    if (!isset($evoc_import_namespaces[$u]) && !in_array($p, $prefixes)) {
-      $evoc_import_namespaces[$u] = array('prefix' => $p, 'new' => true);
-      rdf_register_namespace($p, $u);
-    }
-  }*/
 }
 
 /**
