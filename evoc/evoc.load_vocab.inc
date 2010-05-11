@@ -415,5 +415,3 @@ function _evoc_import_get_new_namespaces() {
   }
   return $result;
 }
-
-?>
