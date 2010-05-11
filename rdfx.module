@@ -130,35 +130,6 @@ function rdfx_sparql_request($query, $datasets = array()) {
   return $rows;
 }
 
-function rdfx_uri_to_qname ($uri) {
-  // If this isn't a valid URI, we cannot parse it.
-  if (!valid_url($uri)) {
-    return $uri;
-  }
-
-  $uri_parts = rdfx_uri_extract_parts($uri);
-  if (!empty($uri_parts['local_part'])) {
-    $prefix = rdfx_get_prefix($uri_parts['ns_uri']);
-    return $prefix . ':' . $uri_parts['local_part'];
-  }
-  else {
-    drupal_set_message('Error processing ' . $uri);
-  }
-}
-
-/**
- * Finds the prefix assigned to a namespace URI.
- */
-function rdfx_get_prefix($uri) {
-  $rdf_namespaces = rdfx_get_namespaces();
-  while ($namespace = current($rdf_namespaces)) {
-    if ($namespace == $uri) {
-      return key($rdf_namespaces);
-    }
-    next($rdf_namespaces);
-  }
-}
-
 /**
  * Gets a list of all defined namespaces.
  */
@@ -170,40 +141,6 @@ function rdfx_get_namespaces() {
   // @todo ensure there are no duplicates and that array is only one level.
   return $rdf_namespaces;
 }
-
-/**
- * Extracts the vocabulary namespace URI and local part from a URI.
- *
- * @param $uri
- *   URI to split.
- * @return $uri_parts
- *   An array containing the namespace uri ('ns_uri') and the 'local_part'.
- */
-function rdfx_uri_extract_parts($uri) {
-  // Local parts cannot contain '/' (slash) or '#' (hash). Therefore, we can
-  // split the URI at the last delimiter into the namespace URI and the local
-  // part.
-
-  $uri_parts = array();
-  // Since we have already tested to ensure this is a valid URL, we don't check
-  // for illegal characters. We use look ahead negation to make sure the hash
-  // is the last delimiting character.
-  $uri_split = preg_split('/(\S*#(?!.*#)(?!.*\/))/', $uri, NULL, PREG_SPLIT_DELIM_CAPTURE);
-  if (!empty($uri_split[1])) {
-    $uri_parts['ns_uri'] = $uri_split[1];
-    $uri_parts['local_part'] = $uri_split[2];
-  }
-  // If there is a slash after the last hash, it is a slash URI so we simply
-  // look for the last slash.
-  else {
-    $uri_split = preg_split('/(\S*\/(?!.*\/))/', $uri, NULL, PREG_SPLIT_DELIM_CAPTURE);
-    $uri_parts['ns_uri'] = $uri_split[1];
-    $uri_parts['local_part'] = $uri_split[2];
-  }
-
-  return $uri_parts;
-}
-
 
 /**
  * Sets up an ARC2 RDF local repository.
@@ -359,44 +296,17 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
   return $nsids;
 }
 
-
 /**
  * Saves vocabulary terms.
  */
 function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
   $nsids = _rdfx_save_vocabulary($vocabulary_uri, $prefix, $vocabulary['namespaces']);
-  dpm($vocabulary);
+  
 }
 
-// @todo merge this with rdfx_uri_to_qname()
-/*function rdfx_uri_to_qname2($uri, $gensym = TRUE, $fail = NULL) {
-  $rdf_namespaces = rdfx_get_namespaces();
-  $best_prefix = $best_match = '';
-
-  // Attempt to find the longest substring match
-  foreach ($rdf_namespaces as $prefix => $match) {
-    if (strpos($uri, $match) === 0 && strlen($match) > strlen($best_match)) {
-      $best_match = $match;
-      $best_prefix = $prefix;
-    }
-  }
-
-  // If successful, life is easy
-  if (!empty($best_prefix)) {
-    $local_part = substr($uri, strlen($best_match));
-    return implode(':', array($best_prefix, $local_part));
-  }
-
-  // No existing namespace prefix found, make one up
-  if ($gensym && preg_match('@([\w\d-_]+)$@', $uri, $matches)) {
-    static $gensym = 0;
-    $prefix = 'g.' . ++$gensym; // Good ol' Lisp tradition continues...
-    $local_part = $matches[1];
-    $rdf_namespaces[$prefix] = substr($uri, 0, -strlen($local_part));
-    return implode(':', array($prefix, $local_part));
-  }
-
-  //trigger_error('Could not convert URI ' . $uri . ' to QName', E_USER_WARNING);
-  return $fail;
-}*/
-
+/**
+ * Splits a URI into namespace and localpart.
+ */
+function rdfx_split_uri ($uri) {
+  $parts = ARC2::splitURI($uri);
+}
