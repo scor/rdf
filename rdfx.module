@@ -159,15 +159,16 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
  */
 function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
   $nsids = _rdfx_save_vocabulary($vocabulary_uri, $prefix, $vocabulary['namespaces']);
-  
+  // @todo Add a hook that passes the $vocabulary and the $model.
 }
 
 /**
  * Returns metadata about term types defined by rdf modules.
  *
  * If your module needs to determine what term types are being supplied by
- * other modules, call this function. Querying rdfx database tables for this
- * information directly is discouraged.
+ * other modules, call this function. Querying rdfx database tables directly
+ * for this information is discouraged. Any additional term types should be
+ * added through the corresponding alter hook.
  *
  * Three major bins of data are stored: tags, value_types, and functions. Each
  * entry in these bins is keyed by the value stored in the actual VotingAPI
@@ -180,16 +181,18 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
  *   An array of metadata defined by RDFx Terms and altered by rdf modules.
  *
  * @see hook_rdfx_term_types_alter()
+ *
+ * Modeled on VotingAPI votingapi_metadata.
  */
 function rdfx_term_types($reset = FALSE) {
   static $types;
   if ($reset || !isset($types)) {
-    $types['classes'] = array();
-    $types['properties'] = array();
+    $types['classes']['term_types'] = array();
+    $types['properties']['term_types'] = array();
     
     // @todo Should the inference consider subProp and subClass relationships
     // as well. ie. should all OWL classes also have the type RDFS Class
-    $types['classes']['rdfs_class'] = array(
+    $types['classes']['term_types']['rdfs_class'] = array(
       'uri' => 'http://www.w3.org/2000/01/rdf-schema#Class',
       'inference' => array(
         'subject' => array(
@@ -202,7 +205,7 @@ function rdfx_term_types($reset = FALSE) {
         ),
       ),
     );
-    $types['classes']['owl_class'] = array(
+    $types['classes']['term_types']['owl_class'] = array(
       'uri' => 'http://www.w3.org/2002/07/owl#Class',
       'inference' => array(
         'subject' => array(
@@ -216,7 +219,7 @@ function rdfx_term_types($reset = FALSE) {
       ),
     );
 
-    $types['properties']['rdf_property'] = array(
+    $types['properties']['term_types']['rdf_property'] = array(
       'uri' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property',
       'inference' => array(
         'subject' => array(
@@ -225,7 +228,7 @@ function rdfx_term_types($reset = FALSE) {
         ),
       ),
     );
-    $types['properties']['owl_property_datatype'] = array(
+    $types['properties']['term_types']['owl_property_datatype'] = array(
       'uri' => 'http://www.w3.org/2002/07/owl#DatatypeProperty',
       'inference' => array(
         'subject' => array(
@@ -234,7 +237,7 @@ function rdfx_term_types($reset = FALSE) {
         ),
       ),
     );
-    $types['properties']['owl_property_object'] = array(
+    $types['properties']['term_types']['owl_property_object'] = array(
       'uri' => 'http://www.w3.org/2002/07/owl#ObjectProperty',
       'inference' => array(
         'subject' => array(
