@@ -88,14 +88,6 @@ function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
   // Add description of each property to $vocabulary['classes']
   $terms = _evoc_fetch_terms($model);
   dpm($terms);
- foreach ($property_uris as $uri) {
-     /*if (substr($uri, 0, strlen($ns_uri)) != $ns_uri) {
-      $ignored_uris[] = $uri;
-      continue;
-    }*/
-    // @todo Make this work.
-    $vocabulary['properties'][] = _evoc_query_for_property_description($model, $uri);
-  }
 
   return $vocabulary;
 }
@@ -136,16 +128,25 @@ function _evoc_query_for_description(&$model, $ns_uri) {
 
 function _evoc_fetch_terms(&$model) {
   $terms = array();
+  $term_uris = array();
   
+  // Retrieve the queries for term retrieval. This may have been modified by
+  // other modules.
   $term_type_groups = rdfx_term_types();
-  foreach($term_type_groups as $term_type_groups => $term_types) {
-    foreach ($term_types as $term_type => $metadata) {
+
+  foreach($term_type_groups as $term_type_group => $group) {
+    foreach ($group['term_types'] as $term_type => $metadata) {
       $query = array(
         array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', $metadata['uri']),
         array('?', $metadata['inference']['subject'], null),
         array('?', $metadata['inference']['object'], null),
       );
-      $terms[$term_type] = _evoc_query_find_uris($model, $query);
+      $term_uris[$term_type] = _evoc_query_find_uris($model, $query);
+      
+      // Add additional information about each term.
+      foreach ($term_uris[$term_type] as $term_uri) {
+        $terms[$term_type][] = _evoc_query_for_term_description(&$model, $term_uri);
+      }
     }
   }
   return $terms;
@@ -250,11 +251,24 @@ function _evoc_query_ask(&$model, $queries) {
 function _evoc_query_find_literal(&$model, $queries) {
   foreach ($queries as $query) {
     list($s, $p, $o) = $query;
-    $triple = _evoc_query_find_first($model, $s, $p, $o);
-    if (!$triple) continue;
-    if ($triple['o_type'] == 'literal') return $triple['o'];
+    $triples = _evoc_query_find_all($model, $s, $p, $o);
+    // We create an associative array based on the language code of the
+    // literal. The language codes Drupal uses are specified in iso.inc.
+    foreach ($triples as $triple) {
+      // Chinese and Portuguese are the only languages with a >2 letter
+      // langcode.
+      if (preg_match('/(zh-hans)|(zh-hant)|(pt-pt)|(pt-br)/', $triple['o_lang'])) {
+        $langcode = $triple['o_lang'];
+      }
+      // Remove the region code if it is used (i.e. en-US is changed to en).
+      else {
+        $lang_array = explode('-', $triple['o_lang']);
+        $langcode = !empty($lang_array[0]) ? $lang_array[0] : $triple['o_lang'];
+      }
+      $x[$langcode] = $triple['o'];
+    }
   }
-  return null;
+  return $x;
 }
 
 function _evoc_query_find_uris(&$model, $queries) {
@@ -299,9 +313,9 @@ function _evoc_query_find_first(&$model, $s, $p, $o) {
 function _evoc_query_find_all(&$model, $s, $p, $o) {
   $result = array();
   foreach ($model as $triple) {
-    if (!is_null($s) && $s != '?' && ($triple['s'] != $s || $triple['s_type'] != 'uri')) continue;
+    if (!is_null($s) && $s != '?' && ($triple['s'] != $s)) continue;
     if (!is_null($p) && $p != '?' && ($triple['p'] != $p)) continue;
-    if (!is_null($o) && $o != '?' && ($triple['o'] != $o || $triple['o_type'] != 'uri')) continue;
+    if (!is_null($o) && $o != '?' && ($triple['o'] != $o)) continue;
     $result[] = $triple;
   }
   return $result;

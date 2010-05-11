@@ -55,59 +55,5 @@ function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_
   
   module_load_include('inc', 'evoc', 'evoc.load_vocab');
   $vocabulary = evoc_get_from_web($vocabulary_uri, $vocabulary_prefix);
-  // Process the terms from the ARC2 results into a usable array.
-  // @todo Move language handling to evoc.load_vocab.inc
-  foreach ($sparql_results as $term_type => $terms) {
-    foreach($terms as $term) {
-      // @todo Handle terms with multiple domains. ARC2 returns a blank node.
-      
-      // Check to see if there are language codes set for comments and labels.
-      if (isset($term['label lang'])) {
-        // Remove the region code if it is used (i.e. en-US is changed to en).
-        $lang_array = explode('-', $term['label lang']);
-        $langcode = !empty($lang_array[0]) ? $lang_array[0] : $term['label lang'];
-      }
-      else {
-        // @todo Is the assumption appropriate that if no language is set,
-        // English is the default language?
-        $langcode = 'en';
-      }
-      $vocabulary[$term_type][$term['term']]['label'][$langcode] = $term['label'];
-      
-      // We create an associative array based on the language code of the
-      // property. The language codes are specified in iso.inc.
-      if (isset($term['comment lang'])) {
-        // Chinese and Portuguese are the only languages with a >2 letter
-        // langcode.
-        if (preg_match('/(zh-hans)|(zh-hant)|(pt-pt)|(pt-br)/', $term['comment lang'])) {
-          $langcode = $term['comment lang'];
-        }
-        // Remove the region code if it is used (i.e. en-US is changed to en).
-        else {
-          $lang_array = explode('-', $term['comment lang']);
-          $langcode = !empty($lang_array[0]) ? $lang_array[0] : $term['comment lang'];
-        }
-      }
-      else {
-        // @todo Is the assumption appropriate that if no language is set,
-        // English is the default language?
-        $langcode = 'en';
-      }
-      $vocabulary[$term_type][$term['term']]['comment'][$langcode] = $term['comment'];
-      
-      // If this is a property, attach its domain and range.
-      if (isset($term['domain'])) {
-        if ($term['domain type'] == 'uri') {
-          $vocabulary[$term_type][$term['term']]['domain'][] = $term['domain'];
-        }
-      }
-      
-      if (isset($term['range'])) {
-        if ($term['range type'] == 'uri') {
-          $vocabulary[$term_type][$term['term']]['range'][] = $term['range'];
-        }
-      }
-    }
-  }
   return $vocabulary;
 }
