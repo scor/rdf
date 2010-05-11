@@ -395,23 +395,3 @@ function _evoc_uri_to_qname($uri) {
   $evoc_import_namespaces[$ns]['used'] = true;
   return $qname;
 }
-
-/**
- * Returns an associative array from prefixes to URIs that contains
- * any namespaces that are necessary for the imported vocabulary,
- * but were not yet previously known to the rdf module. The prefixes
- * will come from the imported RDF model if possible, or are
- * auto-generated otherwise.
- *
- * @return array
- */
-function _evoc_import_get_new_namespaces() {
-  global $evoc_import_namespaces;
-  $result = array();
-  foreach ($evoc_import_namespaces as $ns_uri => $x) {
-    if ($x['used'] && $x['new']) {
-      $result[$x['prefix']] = $ns_uri;
-    }
-  }
-  return $result;
-}
