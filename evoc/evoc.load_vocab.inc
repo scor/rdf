@@ -180,21 +180,6 @@ function _evoc_query_for_terms(&$model) {
   return $terms;
 }
 
-function _evoc_query_for_class_uris(&$model) {
-  return _evoc_query_find_uris($model, array(
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2000/01/rdf-schema#Class'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#Class'),
-    array('?', 'http://www.w3.org/2000/01/rdf-schema#subClassOf', null),
-    array(null, 'http://www.w3.org/2000/01/rdf-schema#subClassOf', '?'),
-    array('?', 'http://www.w3.org/2002/07/owl#equivalentClass', null),
-    array(null, 'http://www.w3.org/2002/07/owl#equivalentClass', '?'),
-    array('?', 'http://www.w3.org/2002/07/owl#disjointWith', null),
-    array(null, 'http://www.w3.org/2002/07/owl#disjointWith', '?'),
-    array(null, 'http://www.w3.org/2000/01/rdf-schema#domain', '?'),
-    array(null, 'http://www.w3.org/2000/01/rdf-schema#range', '?'),
-  ));
-}
-
 function _evoc_query_for_property_uris(&$model) {
   /*return _evoc_query_find_uris($model, array(
     //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'),
