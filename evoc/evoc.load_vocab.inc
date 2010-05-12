@@ -144,15 +144,16 @@ function _evoc_fetch_terms(&$model) {
       );
       $term_uris[$term_type] = _evoc_query_find_uris($model, $query);
       
-      // Add additional information about each term.
+      // Add term details and various relationships for each term, as defined
+      // in rdfx_term_types() and altered by hook_rdfx_term_types_alter().
       foreach ($term_uris[$term_type] as $term_uri) {
         $terms[$term_type][] = _evoc_query_for_term_description(&$model, $term_uri);
-        foreach ($group['description'] as $label => $query_types) {
-          dpm($label);
+        foreach ($group['description'] as $property => $queries) {
           foreach ($query_types['subject'] as $predicate) {
-            $query_x[$term_uri][$label][] = array($term_uri, $predicate, '?');
+            $query_x[$term_uri][$property][] = array($term_uri, $predicate, '?');
           }
-          $x[$term_uri][$label] = _evoc_query_find_uris($model, $query_x[$term_uri][$label]);        }
+          $x[$term_uri][$property] = _evoc_query_find_uris($model, $query_x[$term_uri][$property]);
+        }
       }
       dpm($x);
     }
@@ -263,19 +264,25 @@ function _evoc_query_find_literal(&$model, $queries) {
     // We create an associative array based on the language code of the
     // literal. The language codes Drupal uses are specified in iso.inc.
     foreach ($triples as $triple) {
-      // Chinese and Portuguese are the only languages with a >2 letter
-      // langcode.
-      if (preg_match('/(zh-hans)|(zh-hant)|(pt-pt)|(pt-br)/', $triple['o_lang'])) {
-        $langcode = $triple['o_lang'];
+      if ($triple['o_lang'] !== '') {
+        // Chinese and Portuguese are the only languages with a >2 letter
+        // langcode.
+        if (preg_match('/(zh-hans)|(zh-hant)|(pt-pt)|(pt-br)/', $triple['o_lang'])) {
+          $langcode = $triple['o_lang'];
+        }
+        // Remove the region code if it is used (i.e. en-US is changed to en).
+        else {
+          $lang_array = explode('-', $triple['o_lang']);
+          $langcode = !empty($lang_array[0]) ? $lang_array[0] : $triple['o_lang'];
+        }
       }
-      // Remove the region code if it is used (i.e. en-US is changed to en).
       else {
-        $lang_array = explode('-', $triple['o_lang']);
-        $langcode = !empty($lang_array[0]) ? $lang_array[0] : $triple['o_lang'];
+        $langcode = 'en';
       }
       $literal[$langcode] = $triple['o'];
     }
   }
+  dpm($literal);
   return $literal;
 }
 
