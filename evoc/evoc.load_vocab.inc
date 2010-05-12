@@ -147,15 +147,15 @@ function _evoc_fetch_terms(&$model) {
       // Add term details and various relationships for each term, as defined
       // in rdfx_term_types() and altered by hook_rdfx_term_types_alter().
       foreach ($term_uris[$term_type] as $term_uri) {
-        $terms[$term_type][] = _evoc_query_for_term_description(&$model, $term_uri);
+        $terms[$term_type][$term_uri] = _evoc_query_for_term_description(&$model, $term_uri);
         foreach ($group['description'] as $property => $queries) {
-          foreach ($query_types['subject'] as $predicate) {
+          foreach ($queries['subject'] as $predicate) {
             $query_x[$term_uri][$property][] = array($term_uri, $predicate, '?');
           }
-          $x[$term_uri][$property] = _evoc_query_find_uris($model, $query_x[$term_uri][$property]);
+          $terms[$term_type][$term_uri][$property] = _evoc_query_find_uris($model, $query_x[$term_uri][$property]);
         }
       }
-      dpm($x);
+      dpm($terms);
     }
   }
   return $terms;
@@ -282,7 +282,6 @@ function _evoc_query_find_literal(&$model, $queries) {
       $literal[$langcode] = $triple['o'];
     }
   }
-  dpm($literal);
   return $literal;
 }
 
