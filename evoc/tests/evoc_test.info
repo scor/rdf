@@ -1,0 +1,6 @@
+name = Evoc Test
+description = Provides vocabularies for import testing.
+core = 7.x
+package = RDF
+
+files[] = evoc_test.module
