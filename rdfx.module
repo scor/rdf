@@ -90,14 +90,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
   // If the vocabulary URI matches the main_ns of a vocabulary source, then
   // this is an update to that record. Otherwise, this is a newly imported
   // source.
-  $gids = db_select('rdfx_namespaces', 'rdfns', array());
-  $gids->join('rdfx_vocabulary_graph', 'rdfvg', 'rdfvg.main_ns = rdfns.nsid');
-  $gids
-    ->fields('rdfns', array('gid'))
-    ->condition('rdfns.uri', $main_ns);
-  // @todo There should only be one result if there is a matching vocab source.
-  // However, perhaps we should test to make sure and throw an error?
-  $gid = $gids->execute()->fetchField();
+  $gid = rdfx_get_gid($main_ns);
   
   // If there is an existing vocabulary, make sure that the main_ns is in the
   // namespaces array and that the user defined mapping is the last in the
@@ -220,9 +213,20 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
         }
       }
       
-      // Add property domains.
+      // Add property domains to {rdfx_term_domains}.
       if (isset($term_description['domain'])) {
-        dpm($term_description['domain']);
+        foreach ($term_description['domain'] as $domain) {
+          $domain_tid = rdfx_get_tid($domain, $vocabulary_uri);
+          if ($domain_tid) {
+            db_merge('rdfx_term_domains')
+              ->key(array('tid' => $tid, 'domain_tid' => $domain_tid))
+              ->fields(array(
+                  'tid' => $tid,
+                  'domain_tid' => $domain_tid,
+              ))
+              ->execute();
+          }
+        }
       }
     }
   }
@@ -358,3 +362,32 @@ function rdfx_split_uri ($uri) {
   return $parts;
 }
 
+function rdfx_get_tid($term_uri, $graph_main_ns) {
+  $nsids = rdfx_get_nsids($graph_main_ns);
+  list($term_ns, $term_local_name) = rdfx_split_uri($term_uri);
+  if (isset($nsids[$term_ns])) {
+    $tid = db_query("SELECT tid FROM {rdfx_terms} WHERE nsid = :nsid AND local_name = :localname", array(':nsid' => $nsids[$term_ns], ':localname' => $term_local_name))->fetchField();
+    return $tid;
+  }
+  else {
+    return NULL;
+  }
+}
+
+function rdfx_get_gid($main_ns) {
+  $gids = db_select('rdfx_namespaces', 'rdfns', array());
+  $gids->join('rdfx_vocabulary_graph', 'rdfvg', 'rdfvg.main_ns = rdfns.nsid');
+  $gids
+    ->fields('rdfns', array('gid'))
+    ->condition('rdfns.uri', $main_ns);
+  // @todo There should only be one result if there is a matching vocab source.
+  // However, perhaps we should test to make sure and throw an error?
+  $gid = $gids->execute()->fetchField();
+  return $gid;
+}
+
+function rdfx_get_nsids($main_ns) {
+  $gid = rdfx_get_gid($main_ns);
+  $nsids = db_query("SELECT uri, nsid FROM {rdfx_namespaces} WHERE gid = :gid", array(':gid' => $gid))->fetchAllKeyed();
+  return $nsids;
+}
