@@ -160,7 +160,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
 function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
   $nsids = _rdfx_save_vocabulary($vocabulary_uri, $prefix, $vocabulary['namespaces']);
   foreach ($vocabulary['terms'] as $term_type => $terms) {
-    foreach ($terms as $term_uri => $term_details) {
+    foreach ($terms as $term_uri => $term_description) {
       list($term_ns, $term_local_name) = rdfx_split_uri($term_uri);
       if (isset($nsids[$term_ns])) {
         $nsid = $nsids[$term_ns];
@@ -195,26 +195,22 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
         ->execute();
       
       // Add label and comment to {rdfx_term_details}.
-      if (isset($term_details['label'])) {
-        foreach ($term_details['label'] as $label_lang => $label_text) {
-          db_merge('rdfx_term_details')
-            ->key(array('tid' => $tid, 'language' => $label_lang))
-            ->fields(array(
-                'tid' => $tid,
-                'language' => $label_lang,
-                'label' => $label_text,
-            ))
-            ->execute();
-        }
+      $term_details = array();
+      foreach ($term_description['label'] as $lang => $text) {
+        $term_details[$lang]['label'] = $text;
       }
-      if (isset($term_details['comment'])) {
-        foreach ($term_details['comment'] as $comment_lang => $comment_text) {
+      foreach ($term_description['comment'] as $lang => $text) {
+        $term_details[$lang]['comment'] = $text;
+      }
+      if (!empty($term_details)) {
+        foreach ($term_details as $lang => $details) {
           db_merge('rdfx_term_details')
-            ->key(array('tid' => $tid, 'language' => $comment_lang))
+            ->key(array('tid' => $tid, 'language' => $lang))
             ->fields(array(
                 'tid' => $tid,
-                'language' => $comment_lang,
-                'comment' => $comment_text,
+                'language' => $lang,
+                'label' => $details['label'],
+                'comment' => $details['comment'],
             ))
             ->execute();
         }
