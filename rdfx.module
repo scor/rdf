@@ -61,6 +61,25 @@ function rdfx_menu() {
   return $items;
 }
 
+function rdfx_get_properties() {
+  $term_types = rdfx_term_types();
+  $property_types = array_keys($term_types['properties']['term_types']);
+  
+  $query = db_select('rdfx_term_types', 'rdftt')
+    ->fields('rdft', array('local_name'))
+    ->fields('rdfns', array('prefix'))
+    ->condition('rdftt.type', 'owl_property_object', '=');
+  $query->join('rdfx_terms', 'rdft', 'rdftt.tid = rdft.tid');
+  $query->join('rdfx_namespaces', 'rdfns', 'rdfns.nsid = rdft.nsid');
+  $query->join('rdfx_vocabulary_graphs', 'rdfvg', 'rdfvg.main_ns = rdfns.nsid');
+  $results = $query->execute()->fetchAll();
+  
+  foreach ($results as $result) {
+    $properties[] = $result->prefix . ':' . $result->local_name;
+  }
+  return $properties;
+}
+
 /**
  * Gets a list of all defined namespaces.
  */
@@ -98,7 +117,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
   // vocabulary graph updated date.
   if ($gid) {
     $namespaces[$main_ns_prefix] = $main_ns;
-    db_update('rdfx_vocabulary_graph')
+    db_update('rdfx_vocabulary_graphs')
       ->fields(array('date_updated' => $current_time,))
       ->execute();
   }
@@ -119,7 +138,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
     $nsid = db_insert('rdfx_namespaces')
       ->fields(array('uri' => $main_ns, 'prefix' => $main_ns_prefix, 'gid' => '0'))
       ->execute();
-    $gid = db_insert('rdfx_vocabulary_graph')
+    $gid = db_insert('rdfx_vocabulary_graphs')
       ->fields(array(
           'main_ns' => $nsid,
           'date_created' => $current_time,
@@ -374,7 +393,7 @@ function rdfx_get_tid($term_uri, $graph_main_ns) {
 
 function rdfx_get_gid($main_ns) {
   $gids = db_select('rdfx_namespaces', 'rdfns', array());
-  $gids->join('rdfx_vocabulary_graph', 'rdfvg', 'rdfvg.main_ns = rdfns.nsid');
+  $gids->join('rdfx_vocabulary_graphs', 'rdfvg', 'rdfvg.main_ns = rdfns.nsid');
   $gids
     ->fields('rdfns', array('gid'))
     ->condition('rdfns.uri', $main_ns);
