@@ -158,6 +158,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
  * Saves vocabulary terms.
  */
 function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
+  dpm($vocabulary);
   $nsids = _rdfx_save_vocabulary($vocabulary_uri, $prefix, $vocabulary['namespaces']);
   // @todo Add a hook that passes the $vocabulary and the $model.
 }
@@ -194,6 +195,8 @@ function rdfx_term_types($reset = FALSE) {
     
     // @todo Should the inference consider subProp and subClass relationships
     // as well. ie. should all OWL classes also have the type RDFS Class
+    
+    // @todo Switch to drupal cache
     $types['classes']['term_types']['rdfs_class'] = array(
       'uri' => 'http://www.w3.org/2000/01/rdf-schema#Class',
       'inference' => array(

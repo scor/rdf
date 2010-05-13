@@ -75,19 +75,15 @@ function _evoc_load__error_handler($errno, $errstr) {
  * @return array Array describing the vocabulary, its classes and properties.
  */
 function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
+  $terms = _evoc_fetch_terms($model);
   $vocabulary = array(
       'prefix' => $ns_prefix,
       'uri' => $ns_uri,
       'title' => _evoc_query_for_title($model, $ns_uri),
       'description' => _evoc_query_for_description($model, $ns_uri),
-      'classes' => array(),
-      'properties' => array(),
+      'terms' => $terms,
       'namespaces' => $namespaces,
   );
-// @todo Remove cruft, make this generalized.
-  // Add description of each property to $vocabulary['classes']
-  $terms = _evoc_fetch_terms($model);
-  dpm($terms);
 
   return $vocabulary;
 }
@@ -155,7 +151,6 @@ function _evoc_fetch_terms(&$model) {
           $terms[$term_type][$term_uri][$property] = _evoc_query_find_uris($model, $query_x[$term_uri][$property]);
         }
       }
-      dpm($terms);
     }
   }
   return $terms;
