@@ -102,6 +102,9 @@ function rdfx_schema() {
       ),
     ),
     'primary key' => array('tid'),
+    'unique keys' => array(
+      'nsid_ln' => array('nsid', 'local_name'),
+    ),
   );
 
   $schema['rdfx_term_types'] = array(
