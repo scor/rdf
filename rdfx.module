@@ -213,18 +213,28 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
         }
       }
       
-      // Add property domains to {rdfx_term_domains}.
-      if (isset($term_description['domain'])) {
-        foreach ($term_description['domain'] as $domain) {
-          $domain_tid = rdfx_get_tid($domain, $vocabulary_uri);
-          if ($domain_tid) {
-            db_merge('rdfx_term_domains')
-              ->key(array('tid' => $tid, 'domain_tid' => $domain_tid))
-              ->fields(array(
-                  'tid' => $tid,
-                  'domain_tid' => $domain_tid,
-              ))
-              ->execute();
+      // Add relationships to their respective tables. This is handled as a
+      // complicated set of loops to reduce code duplication. To add a new
+      // relationship, just add the array key that is used in
+      // $types['properties']['description'] to define the relationship, and
+      // then add the name of the table that stores the relationship.
+      $relationships = array(
+        'domain' => 'rdfx_term_domains',
+        'range' => 'rdfx_term_ranges',
+      );
+      foreach ($relationships as $relationship => $table_name) {
+        if (isset($term_description[$relationship])) {
+          foreach ($term_description[$relationship] as $related_term) {
+            $related_term_tid = rdfx_get_tid($related_term, $vocabulary_uri);
+            if ($related_term_tid) {
+              db_merge($table_name)
+                ->key(array('tid' => $tid, $relationship . '_tid' => $related_term_tid))
+                ->fields(array(
+                    'tid' => $tid,
+                    $relationship . '_tid' => $related_term_tid,
+                ))
+                ->execute();
+            }
           }
         }
       }
