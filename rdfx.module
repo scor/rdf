@@ -173,8 +173,7 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
         $nsid = null;
       }
 
-      // Get the tid of this term, saving it to the database if not already
-      // there.
+      // Get the tid of this term, saving to {rdfx_terms} if not already there.
       $tid = db_query("SELECT tid FROM {rdfx_terms} WHERE nsid = :nsid AND local_name = :localname", array(':nsid' => $nsid, ':localname' => $term_local_name))->fetchField();
       if ($tid == NULL) {
         $tid = db_insert('rdfx_terms')
@@ -186,6 +185,16 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
           ->execute();
       }
       
+      // Add the current type to this term in {rdfx_term_types}.
+      db_merge('rdfx_term_types')
+        ->key(array('tid' => $tid, 'type' => $term_type))
+        ->fields(array(
+            'tid' => $tid,
+            'type' => $term_type,
+        ))
+        ->execute();
+      
+      // Add label and comment to {rdfx_term_details}.
       if (isset($term_details['label'])) {
         foreach ($term_details['label'] as $label_lang => $label_text) {
           db_merge('rdfx_term_details')
@@ -198,7 +207,6 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
             ->execute();
         }
       }
-      
       if (isset($term_details['comment'])) {
         foreach ($term_details['comment'] as $comment_lang => $comment_text) {
           db_merge('rdfx_term_details')
