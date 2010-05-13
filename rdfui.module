@@ -301,14 +301,14 @@ function rdfui_datatype_autocomplete($string) {
  */
 function rdfui_predicates_autocomplete($string) {
   
-  $datatypes = 'foaf:name, kelly:lucas, monkey:code';
+  $predicates = 'podcast:name, kelly:lucas, monkey:code';
   
-  $datatypes = explode(', ', $datatypes);
+  $predicates = explode(', ', $predicates);
   $matches = array();
   
-  foreach($datatypes as $datatype) {
-    if (preg_match("/^$string/", $datatype))
-      $matches[$datatype] = $datatype;
+  foreach($predicates as $predicate) {
+    if (preg_match("/^$string/", $predicate))
+      $matches[$predicate] = $predicate;
   }  
   
   drupal_json_output($matches);
