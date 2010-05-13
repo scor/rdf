@@ -10,7 +10,7 @@
  * Implements hook_schema().
  */
 function rdfx_schema() {
-  $schema['rdfx_vocabulary_graph'] = array(
+  $schema['rdfx_vocabulary_graphs'] = array(
     'description' => 'Vocabulary graph, including stubs for any external terms.',
     'fields' => array(
       'gid' => array(
@@ -52,7 +52,7 @@ function rdfx_schema() {
         'not null' => TRUE,
       ),
       'gid' => array(
-        'description' => 'The {rdfx_vocabulary_graph}.gid of the graph that defined this mapping.',
+        'description' => 'The {rdfx_vocabulary_graphs}.gid of the graph that defined this mapping.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -130,7 +130,7 @@ function rdfx_schema() {
     'description' => 'Additional information about a vocabulary.',
     'fields' => array(
       'gid' => array(
-        'description' => 'The {rdfx_vocabulary_graph}.gid of the vocabulary graph.',
+        'description' => 'The {rdfx_vocabulary_graphs}.gid of the vocabulary graph.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
