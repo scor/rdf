@@ -130,12 +130,11 @@ function _evoc_fetch_terms(&$model) {
   $term_type_groups = rdfx_term_types();
 
   foreach($term_type_groups as $term_type_group => $group) {
-    foreach ($group['term_types'] as $term_type => $metadata) {
+    foreach ($group['term_types'] as $term_type => $term) {
       $query = array(
-        //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', $metadata['uri']),
+        array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', $term['uri']),
       );
-      dpm($metadata['inference']);
-      foreach ($metadata['inference'] as $inference_uri => $query_types) {
+      foreach ($term['inference'] as $inference_uri => $query_types) {
         foreach ($query_types as $query_type) {
           switch ($query_type) {
             case 'subject':
@@ -151,12 +150,23 @@ function _evoc_fetch_terms(&$model) {
       
       // Add term details and various relationships for each term, as defined
       // in rdfx_term_types() and altered by hook_rdfx_term_types_alter().
+      $query_x = array();
       foreach ($term_uris[$term_type] as $term_uri) {
         $terms[$term_type][$term_uri] = _evoc_query_for_term_description(&$model, $term_uri);
         foreach ($group['description'] as $property => $queries) {
-          foreach ($queries['subject'] as $predicate) {
-            $query_x[$term_uri][$property][] = array($term_uri, $predicate, '?');
+          foreach ($queries as $uri) {
+            foreach ($uri as $query_type) {
+              switch ($query_type) {
+                case 'subject':
+                  $query_x[$term_uri][$property][] = array('?', $uri, null);
+                  break;
+                case 'object':
+                  $query_x[$term_uri][$property][] = array(null, $uri, '?');
+                  break;
+              }
+            }
           }
+          //dpm($query_x);
           $terms[$term_type][$term_uri][$property] = _evoc_query_find_uris($model, $query_x[$term_uri][$property]);
         }
       }

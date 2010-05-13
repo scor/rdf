@@ -141,9 +141,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
     }
   }
 
-  $nsids = db_query("SELECT uri, nsid FROM {rdfx_namespaces} WHERE gid = :gid",
-    array(':gid' => $gid,))
-    ->fetchAllKeyed();
+  $nsids = rdfx_get_nsids($main_ns);
   return $nsids;
 }
 
@@ -159,11 +157,15 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
         $nsid = $nsids[$term_ns];
       }
       else {
-        // @todo Figure out what to do in the case that the namespace hasn't
-        // been saved. This could happen if the source vocab used full URIs
-        // instead of declaring a NS mapping. This happens in foaf, foaf:Person
-        // is a subclass of "http://www.w3.org/2000/10/swap/pim/contact#Person"
-        $nsid = null;
+        // If the namespace wasn't mapped to a prefix in the source graph, we
+        // didn't save it to the namespaces table, so we need to add an entry.
+        
+        // @todo For the prefix value, we save the URI... should this be changed?
+        $gid = rdfx_get_gid($vocabulary_uri);
+        $nsid = db_insert('rdfx_namespaces')
+          ->fields(array('uri' => $term_ns, 'prefix' => $term_ns, 'gid' => $gid))
+          ->execute();
+        $nsids[$term_ns] = $nsid;
       }
 
       // Get the tid of this term, saving to {rdfx_terms} if not already there.
