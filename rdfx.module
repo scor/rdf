@@ -196,11 +196,15 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
       
       // Add label and comment to {rdfx_term_details}.
       $term_details = array();
-      foreach ($term_description['label'] as $lang => $text) {
-        $term_details[$lang]['label'] = $text;
+      if (isset($term_description['label'])) {
+        foreach ($term_description['label'] as $lang => $text) {
+          $term_details[$lang]['label'] = $text;
+        }
       }
-      foreach ($term_description['comment'] as $lang => $text) {
-        $term_details[$lang]['comment'] = $text;
+      if (isset($term_description['comment'])) {
+        foreach ($term_description['comment'] as $lang => $text) {
+          $term_details[$lang]['comment'] = $text;
+        }
       }
       if (!empty($term_details)) {
         foreach ($term_details as $lang => $details) {
@@ -214,6 +218,11 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
             ))
             ->execute();
         }
+      }
+      
+      // Add property domains.
+      if (isset($term_description['domain'])) {
+        dpm($term_description['domain']);
       }
     }
   }
