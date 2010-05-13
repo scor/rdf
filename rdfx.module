@@ -280,26 +280,28 @@ function rdfx_term_types($reset = FALSE) {
     $types['classes']['term_types']['rdfs_class'] = array(
       'uri' => 'http://www.w3.org/2000/01/rdf-schema#Class',
       'inference' => array(
-        'subject' => array(
-          'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+        'http://www.w3.org/2000/01/rdf-schema#subClassOf' => array(
+          'subject',
+          'object',
         ),
-        'object' => array(
-          'http://www.w3.org/2000/01/rdf-schema#subClassOf',
-          'http://www.w3.org/2000/01/rdf-schema#domain',
-          'http://www.w3.org/2000/01/rdf-schema#range',
+        'http://www.w3.org/2000/01/rdf-schema#domain' => array(
+          'object',
+        ),
+        'http://www.w3.org/2000/01/rdf-schema#range' => array(
+          'object',
         ),
       ),
     );
     $types['classes']['term_types']['owl_class'] = array(
       'uri' => 'http://www.w3.org/2002/07/owl#Class',
       'inference' => array(
-        'subject' => array(
-          'http://www.w3.org/2002/07/owl#equivalentClass',
-          'http://www.w3.org/2002/07/owl#disjointWith',
+        'http://www.w3.org/2002/07/owl#equivalentClass' => array(
+          'subject',
+          'object',
         ),
-        'object' => array(
-          'http://www.w3.org/2002/07/owl#equivalentClass',
-          'http://www.w3.org/2002/07/owl#disjointWith',
+        'http://www.w3.org/2002/07/owl#disjointWith' => array(
+          'subject',
+          'object',
         ),
       ),
     );
@@ -307,28 +309,16 @@ function rdfx_term_types($reset = FALSE) {
     $types['properties']['term_types']['rdf_property'] = array(
       'uri' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property',
       'inference' => array(
-        'subject' => array(
-        ),
-        'object' => array(
-        ),
       ),
     );
     $types['properties']['term_types']['owl_property_datatype'] = array(
       'uri' => 'http://www.w3.org/2002/07/owl#DatatypeProperty',
       'inference' => array(
-        'subject' => array(
-        ),
-        'object' => array(
-        ),
       ),
     );
     $types['properties']['term_types']['owl_property_object'] = array(
       'uri' => 'http://www.w3.org/2002/07/owl#ObjectProperty',
       'inference' => array(
-        'subject' => array(
-        ),
-        'object' => array(
-        ),
       ),
     );
     
@@ -344,17 +334,13 @@ function rdfx_term_types($reset = FALSE) {
     
     $types['properties']['description'] = array(
       'domain' => array(
-        'subject' => array(
-          'http://www.w3.org/2000/01/rdf-schema#domain',
-        ),
-        'object' => array(
+        'http://www.w3.org/2000/01/rdf-schema#domain' => array(
+          'subject',
         ),
       ),
       'range' => array(
-        'subject' => array(
-          'http://www.w3.org/2000/01/rdf-schema#range',
-        ),
-        'object' => array(
+        'http://www.w3.org/2000/01/rdf-schema#range' => array(
+          'subject',
         ),
       ),
     );

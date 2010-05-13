@@ -124,7 +124,6 @@ function _evoc_query_for_description(&$model, $ns_uri) {
 function _evoc_fetch_terms(&$model) {
   $terms = array();
   $term_uris = array();
-  $query_x = array();
   
   // Retrieve the queries for term retrieval. This may have been modified by
   // other modules.
@@ -133,10 +132,21 @@ function _evoc_fetch_terms(&$model) {
   foreach($term_type_groups as $term_type_group => $group) {
     foreach ($group['term_types'] as $term_type => $metadata) {
       $query = array(
-        array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', $metadata['uri']),
-        array('?', $metadata['inference']['subject'], null),
-        array(null, $metadata['inference']['object'], '?'),
+        //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', $metadata['uri']),
       );
+      dpm($metadata['inference']);
+      foreach ($metadata['inference'] as $inference_uri => $query_types) {
+        foreach ($query_types as $query_type) {
+          switch ($query_type) {
+            case 'subject':
+              $query[] = array('?', $inference_uri, null);
+              break;
+            case 'object':
+              $query[] = array(null, $inference_uri, '?');
+              break;
+          }
+        }
+      }
       $term_uris[$term_type] = _evoc_query_find_uris($model, $query);
       
       // Add term details and various relationships for each term, as defined
