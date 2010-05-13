@@ -168,7 +168,8 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
       else {
         // @todo Figure out what to do in the case that the namespace hasn't
         // been saved. This could happen if the source vocab used full URIs
-        // instead of declaring a NS mapping.
+        // instead of declaring a NS mapping. This happens in foaf, foaf:Person
+        // is a subclass of "http://www.w3.org/2000/10/swap/pim/contact#Person"
         $nsid = null;
       }
 
