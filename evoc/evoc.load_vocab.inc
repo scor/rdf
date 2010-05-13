@@ -77,7 +77,6 @@ function _evoc_load__error_handler($errno, $errstr) {
 function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
   $terms = _evoc_fetch_terms($model);
   $vocabulary = array(
-      'prefix' => $ns_prefix,
       'uri' => $ns_uri,
       'title' => _evoc_query_for_title($model, $ns_uri),
       'description' => _evoc_query_for_description($model, $ns_uri),
@@ -272,7 +271,7 @@ function _evoc_query_find_literal(&$model, $queries) {
         }
       }
       else {
-        $langcode = 'en';
+        $langcode = 'und';
       }
       $literal[$langcode] = $triple['o'];
     }

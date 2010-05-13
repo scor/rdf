@@ -158,8 +158,60 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
  * Saves vocabulary terms.
  */
 function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
-  dpm($vocabulary);
   $nsids = _rdfx_save_vocabulary($vocabulary_uri, $prefix, $vocabulary['namespaces']);
+  foreach ($vocabulary['terms'] as $term_type => $terms) {
+    foreach ($terms as $term_uri => $term_details) {
+      list($term_ns, $term_local_name) = rdfx_split_uri($term_uri);
+      if (isset($nsids[$term_ns])) {
+        $nsid = $nsids[$term_ns];
+      }
+      else {
+        // @todo Figure out what to do in the case that the namespace hasn't
+        // been saved. This could happen if the source vocab used full URIs
+        // instead of declaring a NS mapping.
+        $nsid = null;
+      }
+
+      // Get the tid of this term, saving it to the database if not already
+      // there.
+      $tid = db_query("SELECT tid FROM {rdfx_terms} WHERE nsid = :nsid AND local_name = :localname", array(':nsid' => $nsid, ':localname' => $term_local_name))->fetchField();
+      if ($tid == NULL) {
+        $tid = db_insert('rdfx_terms')
+          ->fields(array('nsid', 'local_name'))
+          ->values(array(
+            'nsid' => $nsid,
+            'local_name' => $term_local_name,
+          ))
+          ->execute();
+      }
+      
+      if (isset($term_details['label'])) {
+        foreach ($term_details['label'] as $label_lang => $label_text) {
+          db_merge('rdfx_term_details')
+            ->key(array('tid' => $tid, 'language' => $label_lang))
+            ->fields(array(
+                'tid' => $tid,
+                'language' => $label_lang,
+                'label' => $label_text,
+            ))
+            ->execute();
+        }
+      }
+      
+      if (isset($term_details['comment'])) {
+        foreach ($term_details['comment'] as $comment_lang => $comment_text) {
+          db_merge('rdfx_term_details')
+            ->key(array('tid' => $tid, 'language' => $comment_lang))
+            ->fields(array(
+                'tid' => $tid,
+                'language' => $comment_lang,
+                'comment' => $comment_text,
+            ))
+            ->execute();
+        }
+      }
+    }
+  }
   // @todo Add a hook that passes the $vocabulary and the $model.
 }
 
@@ -289,5 +341,6 @@ function rdfx_term_types($reset = FALSE) {
  */
 function rdfx_split_uri ($uri) {
   $parts = ARC2::splitURI($uri);
+  return $parts;
 }
 
