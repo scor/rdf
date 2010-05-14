@@ -68,7 +68,7 @@ function rdfx_get_properties() {
   $query = db_select('rdfx_term_types', 'rdftt')
     ->fields('rdft', array('local_name'))
     ->fields('rdfns', array('prefix'))
-    ->condition('rdftt.type', 'owl_property_object', '=');
+    ->condition('rdftt.type', $property_types, 'IN');
   $query->join('rdfx_terms', 'rdft', 'rdftt.tid = rdft.tid');
   $query->join('rdfx_namespaces', 'rdfns', 'rdfns.nsid = rdft.nsid');
   $query->join('rdfx_vocabulary_graphs', 'rdfvg', 'rdfvg.main_ns = rdfns.nsid');
