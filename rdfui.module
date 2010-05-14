@@ -301,13 +301,12 @@ function rdfui_datatype_autocomplete($string) {
  */
 function rdfui_predicates_autocomplete($string) {
   
-  $predicates = 'podcast:name, kelly:lucas, monkey:code';
+  $predicates = rdfx_get_properties();
   
-  $predicates = explode(', ', $predicates);
   $matches = array();
   
   foreach($predicates as $predicate) {
-    if (preg_match("/^$string/", $predicate))
+    if (preg_match("/$string/", $predicate))
       $matches[$predicate] = $predicate;
   }  
   
