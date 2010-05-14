@@ -62,22 +62,41 @@ function rdfx_menu() {
 }
 
 function rdfx_get_properties() {
+  $properties = _rdfx_get_terms('property');
+  return $properties;
+}
+
+function rdfx_get_classes() {
+  $properties = _rdfx_get_terms('class');
+  return $properties;
+}
+
+function _rdfx_get_terms($term_type) {
   $term_types = rdfx_term_types();
-  $property_types = array_keys($term_types['properties']['term_types']);
+  switch ($term_type) {
+    case 'property':
+      $types = array_keys($term_types['properties']['term_types']);
+      break;
+    case 'class':
+      $types = array_keys($term_types['classes']['term_types']);
+      break;
+    default:
+      $types = array_merge(array_keys($term_types['properties']['term_types']), array_keys($term_types['classes']['term_types']));
+  }
   
   $query = db_select('rdfx_term_types', 'rdftt')
     ->fields('rdft', array('local_name'))
     ->fields('rdfns', array('prefix'))
-    ->condition('rdftt.type', $property_types, 'IN');
+    ->condition('rdftt.type', $types, 'IN');
   $query->join('rdfx_terms', 'rdft', 'rdftt.tid = rdft.tid');
   $query->join('rdfx_namespaces', 'rdfns', 'rdfns.nsid = rdft.nsid');
   $query->join('rdfx_vocabulary_graphs', 'rdfvg', 'rdfvg.main_ns = rdfns.nsid');
   $results = $query->execute()->fetchAll();
   
   foreach ($results as $result) {
-    $properties[] = $result->prefix . ':' . $result->local_name;
+    $terms[] = $result->prefix . ':' . $result->local_name;
   }
-  return $properties;
+  return $terms;
 }
 
 /**
