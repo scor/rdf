@@ -421,3 +421,14 @@ function rdfx_get_nsids($main_ns) {
   $nsids = db_query("SELECT uri, nsid FROM {rdfx_namespaces} WHERE gid = :gid", array(':gid' => $gid))->fetchAllKeyed();
   return $nsids;
 }
+
+function rdfx_curie($tid) {
+  $query = db_select('rdfx_terms', 'rdft')
+    ->fields('rdft', array('local_name'))
+    ->fields('rdfns', array('prefix'))
+    ->condition('rdft.tid', $tid, '=');
+  $query->join('rdfx_namespaces', 'rdfns', 'rdfns.nsid = rdft.nsid');
+  $result = $query->execute()->fetch();
+  $curie = $result->prefix . ':' . $result->local_name;
+  return $curie;
+}

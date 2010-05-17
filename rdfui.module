@@ -300,16 +300,16 @@ function rdfui_datatype_autocomplete($string) {
  * Menu callback for predicates autocomplete
  */
 function rdfui_predicates_autocomplete($string) {
-  
-  $predicates = rdfx_get_properties();
-  
-  $matches = array();
-  
+  $predicates = array();
+  $predicate_tids = rdfx_get_properties();
+  foreach ($predicate_tids as $predicate_tid) {
+    $predicates[] = rdfx_curie($predicate_tid);
+  }
+
   foreach($predicates as $predicate) {
     if (preg_match("/$string/", $predicate))
       $matches[$predicate] = $predicate;
   }  
-  
   drupal_json_output($matches);
 }
 
