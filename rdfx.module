@@ -432,3 +432,25 @@ function rdfx_curie($tid) {
   $curie = $result->prefix . ':' . $result->local_name;
   return $curie;
 }
+
+function _rdfx_get_term_details($tid, $langcode = 'und') {
+  $query_language = db_query("SELECT language FROM {rdfx_term_details} WHERE tid = :tid", array(':tid' => $tid));
+  $languages = $query_language->fetchCol();
+  if (!in_array($langcode, $languages)) {
+    if (in_array('und', $languages)) {
+      $langcode = 'und';
+    }
+    elseif (in_array('en', $languages)) {
+      $langcode = 'en';
+    }
+    else {
+      return;
+    }
+  }
+  $query = db_select('rdfx_term_details', 'rdfd')
+    ->fields('rdfd', array('label', 'comment'))
+    ->condition('rdfd.tid', $tid, '=')
+    ->condition('language', $langcode, '=');
+  $details = $query->execute()->fetch();
+  return $details;
+}
