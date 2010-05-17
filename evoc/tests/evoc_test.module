@@ -36,45 +36,45 @@ function _vocabulary_rdf_xml() {
       <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology"/>
       <dc:title>Data Catalog Vocabulary (dcat)</dc:title>
       <dc:description>This document defines an RDF vocabulary for the exchange of data catalogs. Its primary purpose is the expression of government data catalogs, such as data.gov or data.gov.uk, in RDF. This is an early draft. We welcome feedback and discussion.</dc:description>
-      <vann:preferredNamespaceUri>http://vocab.deri.ie/dcat#</vann:preferredNamespaceUri>
+      <vann:preferredNamespaceUri>http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#</vann:preferredNamespaceUri>
       <vann:preferredNamespacePrefix>dcat</vann:preferredNamespacePrefix>
   
-      <dc:creator rdf:resource="http://vocab.deri.ie/dcat#cygri"/>
-      <dc:creator rdf:resource="http://vocab.deri.ie/dcat#fadmaa"/>
+      <dc:creator rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#cygri"/>
+      <dc:creator rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#fadmaa"/>
     </foaf:Document>
   
-    <foaf:Person rdf:about="http://vocab.deri.ie/dcat#cygri">
+    <foaf:Person rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#cygri">
       <foaf:name>Richard Cyganiak</foaf:name>
       <foaf:homepage rdf:resource="http://richard.cyganiak.de/"/>
       <foaf:mbox rdf:resource="mailto:richard.cyganiak@deri.org"/>
     </foaf:Person>
   
-    <foaf:Organization rdf:about="http://vocab.deri.ie/dcat#Digital%20Enterprise%20Research%20Institute%2C%20NUI%20Galway">
-      <foaf:member rdf:resource="http://vocab.deri.ie/dcat#cygri"/>
+    <foaf:Organization rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Digital%20Enterprise%20Research%20Institute%2C%20NUI%20Galway">
+      <foaf:member rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#cygri"/>
       <foaf:name>Digital Enterprise Research Institute, NUI Galway</foaf:name>
       <foaf:homepage rdf:resource="http://www.deri.ie/"/>
     </foaf:Organization>
   
-    <foaf:Person rdf:about="http://vocab.deri.ie/dcat#fadmaa">
+    <foaf:Person rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#fadmaa">
       <foaf:name>Fadi Maali</foaf:name>
   
       <foaf:mbox rdf:resource="mailto:fadi.maali@deri.org"/>
     </foaf:Person>
   
-    <foaf:Organization rdf:about="http://vocab.deri.ie/dcat#DERI%2C%20NUI%20Galway">
-      <foaf:member rdf:resource="http://vocab.deri.ie/dcat#fadmaa"/>
+    <foaf:Organization rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#DERI%2C%20NUI%20Galway">
+      <foaf:member rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#fadmaa"/>
       <foaf:name>DERI, NUI Galway</foaf:name>
       <foaf:homepage rdf:resource="http://deri.ie/"/>
     </foaf:Organization>
   
-    <rdfs:Class rdf:about="http://vocab.deri.ie/dcat#CatalogRecord">
+    <rdfs:Class rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#CatalogRecord">
       <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>Catalog Record</rdfs:label>
       <rdfs:comment>Represents a description of a single dataset in the catalog</rdfs:comment>
     </rdfs:Class>
   
-    <rdfs:Class rdf:about="http://vocab.deri.ie/dcat#Catalog">
+    <rdfs:Class rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Catalog">
   
       <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
@@ -83,7 +83,7 @@ function _vocabulary_rdf_xml() {
       <rdfs:subClassOf rdf:resource="http://data.fundacionctic.org/vocab/catalog/datasets#Catalog"/>
     </rdfs:Class>
   
-    <rdfs:Class rdf:about="http://vocab.deri.ie/dcat#Dataset">
+    <rdfs:Class rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Dataset">
   
       <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
@@ -92,25 +92,25 @@ function _vocabulary_rdf_xml() {
       <rdfs:subClassOf rdf:resource="http://data.fundacionctic.org/vocab/catalog/datasets#Dataset"/>
     </rdfs:Class>
   
-    <rdfs:Class rdf:about="http://vocab.deri.ie/dcat#Feed">
+    <rdfs:Class rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Feed">
   
       <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>Feed</rdfs:label>
       <rdfs:comment>represent a feed endpoint that enables access to the data of a dataset</rdfs:comment>
-      <rdfs:subClassOf rdf:resource="http://vocab.deri.ie/dcat#Distribution"/>
+      <rdfs:subClassOf rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Distribution"/>
     </rdfs:Class>
   
-    <rdfs:Class rdf:about="http://vocab.deri.ie/dcat#WebService">
+    <rdfs:Class rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#WebService">
   
       <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>Web Service</rdfs:label>
       <rdfs:comment>represents a web service that enables access to the data of a dataset</rdfs:comment>
-      <rdfs:subClassOf rdf:resource="http://vocab.deri.ie/dcat#Distribution"/>
+      <rdfs:subClassOf rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Distribution"/>
     </rdfs:Class>
   
-    <rdfs:Class rdf:about="http://vocab.deri.ie/dcat#Distribution">
+    <rdfs:Class rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Distribution">
   
       <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
@@ -118,116 +118,116 @@ function _vocabulary_rdf_xml() {
       <rdfs:comment>Represents a specific available form of a dataset. Each dataset might be available in different forms, these forms might represent different formats of the dataset, different endpoints,... Examples of Distribution include a downloadable CSV file, an XLS file representing the dataset, an RSS endpoint that enables access to the dataset.</rdfs:comment>
     </rdfs:Class>
   
-    <rdfs:Class rdf:about="http://vocab.deri.ie/dcat#Download">
+    <rdfs:Class rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Download">
       <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
   
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>Download</rdfs:label>
       <rdfs:comment>represents a downloadable distribution of a dataset. Use accessURL to point to the downloadable file (should be a direct download link, use Distribution if not)</rdfs:comment>
-      <rdfs:subClassOf rdf:resource="http://vocab.deri.ie/dcat#Distribution"/>
+      <rdfs:subClassOf rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Distribution"/>
     </rdfs:Class>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#themeTaxonomy">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#themeTaxonomy">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
   
       <rdfs:label>theme taxonomy</rdfs:label>
       <rdfs:comment>the knowledge oraganization schema describing themes of datasets within the catalog.</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Catalog"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Catalog"/>
       <rdfs:range rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#dataset">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#dataset">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
   
       <rdfs:label>dataset</rdfs:label>
       <rdfs:comment>Connects a catalog to datasets it describes.</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Catalog"/>
-      <rdfs:range rdf:resource="http://vocab.deri.ie/dcat#Dataset"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Catalog"/>
+      <rdfs:range rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Dataset"/>
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#distribution">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#distribution">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
   
       <rdfs:label>distribution</rdfs:label>
       <rdfs:comment>connects a dataset to one of its available distributions</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Dataset"/>
-      <rdfs:range rdf:resource="http://vocab.deri.ie/dcat#Distribution"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Dataset"/>
+      <rdfs:range rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Distribution"/>
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#dataQuality">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#dataQuality">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
   
       <rdfs:label>data quality</rdfs:label>
       <rdfs:comment>describes the quality of data e.g. precision. This should not be used to describe the data collection characteristics, other more specialized statistical properties can be used instead.</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Dataset"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Dataset"/>
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#theme">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#theme">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>theme</rdfs:label>
   
       <rdfs:comment>links a dataset to its theme i.e to its main category. a dataset can have multiple themes.</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Dataset"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Dataset"/>
       <rdfs:range rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
       <rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/subject"/>
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#dataDictionary">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#dataDictionary">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>data dictionary</rdfs:label>
   
       <rdfs:comment>links a dataset to a dictionary that helps interpreting the data.</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Dataset"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Dataset"/>
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#granularity">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#granularity">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>granularity</rdfs:label>
       <rdfs:comment>Describes the level of granularity of data in a dataset. The granularity can be in time, place etc</rdfs:comment>
   
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Dataset"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Dataset"/>
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#size">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#size">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>size</rdfs:label>
       <rdfs:comment>describe data size e.g. file size</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Distribution"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Distribution"/>
   
       <rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/extent"/>
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#keyword">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#keyword">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>keyword</rdfs:label>
       <rdfs:comment>refers to a tag or keyword describing the dataset</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Dataset"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Dataset"/>
   
       <rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/subject"/>
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#bytes">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#bytes">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>size in bytes</rdfs:label>
       <rdfs:comment>describe size of resource in bytes</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Distribution"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Distribution"/>
   
     </rdf:Property>
   
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#record">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#record">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>record</rdfs:label>
       <rdfs:comment>links a catalog to its records</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Catalog"/>
-      <rdfs:range rdf:resource="http://vocab.deri.ie/dcat#CatalogRecord"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Catalog"/>
+      <rdfs:range rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#CatalogRecord"/>
   
     </rdf:Property>
 
-    <rdf:Property rdf:about="http://vocab.deri.ie/dcat#accessURL">
+    <rdf:Property rdf:about="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#accessURL">
       <rdfs:isDefinedBy rdf:resource="http://vocab.deri.ie/dcat"/>
       <rdfs:label>access URL</rdfs:label>
       <rdfs:comment>describes availability of a dataset. This can be a direct download link, an HTML page containing a link to the actual data, Feed, Web Service etc. the semantic is determined by its domain (Distribution, Feed, WebService, Download).</rdfs:comment>
-      <rdfs:domain rdf:resource="http://vocab.deri.ie/dcat#Distribution"/>
+      <rdfs:domain rdf:resource="http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#Distribution"/>
     </rdf:Property>
   
   </rdf:RDF>';
