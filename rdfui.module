@@ -23,6 +23,16 @@ function rdfui_help($path, $arg) {
   }
 }
 
+/**
+ * Implements hook_theme().
+ */
+function rdfui_theme($path, $arg) {
+  return array(
+  'rdfui_term_autocomplete' => array(
+      'render element' => 'term',
+    ),
+  );
+}
 
 /**
  * Implements hook_permission().
@@ -305,7 +315,9 @@ function rdfui_predicates_autocomplete($string) {
   foreach ($predicate_tids as $predicate_tid) {
     $predicate = rdfx_curie($predicate_tid);
     if (preg_match("/$string/", $predicate)) {
-      $matches[$predicate] = $predicate;
+      $details = _rdfx_get_term_details($predicate_tid);
+      $details->curie = $predicate;
+      $matches[$predicate] = theme('rdfui_term_autocomplete', array('term' => $details));
     }
   }
   drupal_json_output($matches);
@@ -433,5 +445,28 @@ function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
   );
   //dpm($mapping_info);
   rdf_mapping_save($mapping_info);
+}
 
+/**
+ * Returns HTML for a term.
+ *
+ * @param $term
+ *   An associative array containing:
+ *   - term: A render element representing the term.
+ *      - curie: The term's compact URI.
+ *      - label: The term's human readable label.
+ *      - comment: A description of the term.
+ *
+ * @ingroup themeable
+ */
+function theme_rdfui_term_autocomplete($variables) {
+  $term = $variables['term'];
+  
+  $output = '<span class="rdf-term-autocomplete">';
+  $output .= $term->curie;
+  $output .= '<span class="rdf-label-autocomplete">' . $term->label . '</span>';
+  $output .= '<span class="rdf-comment-autocomplete">' . $term->comment . '</span>';
+  $output .= '</span>';
+  
+  return $output;
 }
