@@ -303,13 +303,11 @@ function rdfui_predicates_autocomplete($string) {
   $predicates = array();
   $predicate_tids = rdfx_get_properties();
   foreach ($predicate_tids as $predicate_tid) {
-    $predicates[] = rdfx_curie($predicate_tid);
-  }
-
-  foreach($predicates as $predicate) {
-    if (preg_match("/$string/", $predicate))
+    $predicate = rdfx_curie($predicate_tid);
+    if (preg_match("/$string/", $predicate)) {
       $matches[$predicate] = $predicate;
-  }  
+    }
+  }
   drupal_json_output($matches);
 }
 
