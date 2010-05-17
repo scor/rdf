@@ -462,7 +462,7 @@ function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
 function theme_rdfui_term_autocomplete($variables) {
   $term = $variables['term'];
   
-  $output = '<span class="rdf-term-autocomplete">';
+  $output = '<span class="form-item rdf-term-autocomplete">';
   $output .= $term->curie;
   $output .= '<span class="rdf-label-autocomplete">' . $term->label . '</span>';
   $output .= '<span class="rdf-comment-autocomplete">' . $term->comment . '</span>';

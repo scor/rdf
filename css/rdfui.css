@@ -24,7 +24,7 @@
 }
 
 /*
- * Fieldset in RDF Settings block on bundle's main edit page
+ * Fieldset in RDF Settings block on bundle's main edit page.
  */
 .vertical-tabs #edit-rdf-title {
   background:none;
@@ -34,4 +34,12 @@
 .vertical-tabs #edit-rdf-title legend {
   display: inline;
   padding: 20px 0 30px;
+}
+
+/*
+ * Terms autocomplete on administrative screens.
+ */
+.rdf-label-autocomplete,
+.rdf-label-autocomplete{
+  display: block;
 }
