@@ -16,9 +16,105 @@ function evoc_test_menu() {
     'page callback'   => '_vocabulary_rdf_xml',
     'access callback' => TRUE,
   );
+  $items['evoc_test/vocabulary_n3'] = array(
+    'title'           => 'N3 vocabulary',
+    'description'     => 'Fake N3 vocabulary for import testing.',
+    'page callback'   => '_vocabulary_n3',
+    'access callback' => TRUE,
+  );
   return $items;
 }
-
+function _vocabulary_n3() {
+  // We fake an n3 vocabulary to feed into the importer.
+  drupal_add_http_header('Content-Type', 'text/n3; charset=utf-8');
+  print '@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+    @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    @prefix dc: <http://purl.org/dc/elements/1.1/> .
+    @prefix vann: <http://purl.org/vocab/vann/> .
+    @prefix rooms: <http://localhost/rdf-contrib/evoc_test/vocabulary_n3#> .
+    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+    @prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+    @prefix dct: <http://purl.org/dc/terms/> .
+    
+    <http://localhost/rdf-contrib/evoc_test/vocabulary_n3> a foaf:Document, owl:Ontology;
+        dc:title "Buildings and Rooms Vocabulary";
+        dc:description "A simple vocabulary for describing the rooms in a building.";
+        vann:preferredNamespaceUri "http://localhost/rdf-contrib/evoc_test/vocabulary_n3#";
+        vann:preferredNamespacePrefix "rooms";
+        dc:creator rooms:cygri .
+    
+    rooms:cygri a foaf:Person;
+        foaf:name "Richard Cyganiak";
+        foaf:homepage <http://richard.cyganiak.de/>;
+        foaf:mbox <mailto:richard.cyganiak@deri.org> .
+    
+    <http://localhost/rdf-contrib/evoc_test/vocabulary_n3#Digital%20Enterprise%20Research%20Institute%2C%20NUI%20Galway> a foaf:Organization;
+        foaf:member rooms:cygri;
+        foaf:name "Digital Enterprise Research Institute, NUI Galway";
+        foaf:homepage <http://www.deri.ie/> .
+    
+    rooms:Building a rdfs:Class, owl:Class;
+        rdfs:isDefinedBy <http://localhost/rdf-contrib/evoc_test/vocabulary_n3>;
+        rdfs:label "Building";
+        rdfs:comment "A human-made structure used for sheltering or continuous occupancy.";
+        rdfs:subClassOf geo:SpatialThing;
+        owl:disjointWith
+            foaf:Document,
+            foaf:Agent .
+    
+    rooms:Room a rdfs:Class, owl:Class;
+        rdfs:isDefinedBy <http://localhost/rdf-contrib/evoc_test/vocabulary_n3>;
+        rdfs:label "Room";
+        rdfs:comment "A space inside a structure, typically separated from the outside by exterior walls and from other rooms in the same structure by internal walls.";
+        rdfs:subClassOf geo:SpatialThing;
+        owl:disjointWith
+            foaf:Document,
+            foaf:Agent .
+    
+    rooms:Floor a rdfs:Class, owl:Class;
+        rdfs:isDefinedBy <http://localhost/rdf-contrib/evoc_test/vocabulary_n3>;
+        rdfs:label "Floor";
+        rdfs:comment "A level part of a building that has a permanent roof. A storey of a building.";
+        rdfs:subClassOf geo:SpatialThing;
+        owl:disjointWith
+            foaf:Document,
+            foaf:Agent .
+    
+    rooms:FloorSection a rdfs:Class, owl:Class;
+        rdfs:isDefinedBy <http://localhost/rdf-contrib/evoc_test/vocabulary_n3>;
+        rdfs:label "Floor Section";
+        rdfs:comment "A named part of a floor of a building. Typically used to denote several rooms that are grouped together based on spatial arrangement or use.";
+        rdfs:subClassOf geo:SpatialThing;
+        owl:disjointWith
+            foaf:Agent,
+            foaf:Document .
+    
+    rooms:Desk a rdfs:Class, owl:Class;
+        rdfs:isDefinedBy <http://localhost/rdf-contrib/evoc_test/vocabulary_n3>;
+        rdfs:label "Desk";
+        rdfs:comment "A table used in a work or office setting, typically for reading, writing, or computer use.";
+        rdfs:subClassOf geo:SpatialThing;
+        owl:disjointWith
+            foaf:Document,
+            foaf:Agent .
+    
+    rooms:contains a rdf:Property;
+        rdfs:isDefinedBy <http://localhost/rdf-contrib/evoc_test/vocabulary_n3>;
+        rdfs:label "Contains";
+        rdfs:comment "The object resource is physically and spatially contained in the subject resource. Being the subject or object of this property implies being a spatial object. Intended for use in the context of buildings, rooms, etc.";
+        rdfs:domain geo:SpatialThing;
+        rdfs:range geo:SpatialThing;
+        rdfs:subPropertyOf dct:hasPart .
+    
+    rooms:occupant a rdf:Property;
+        rdfs:isDefinedBy <http://localhost/rdf-contrib/evoc_test/vocabulary_n3>;
+        rdfs:label "Occupant";
+        rdfs:comment "An agent that generally occupies the physical area of the subject resource. Having this property implies being a spatial object. Being the object of this property implies being an agent. Intended for use with buildings, rooms, desks, etc.";
+        rdfs:domain geo:SpatialThing;
+        rdfs:range foaf:Agent .
+    ';
+}
 /**
  * Menu callback ( see evoc_test_menu() ).
  */
