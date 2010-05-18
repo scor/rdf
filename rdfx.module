@@ -117,7 +117,7 @@ function rdfx_rdf_namespaces() {
  * Saves the main namespace mapping for a vocabulary graph and the additional
  * namespace mappings as defined in the document.
  */
-function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
+function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
   $current_time = REQUEST_TIME;
   // If the vocabulary URI matches the main_ns of a vocabulary source, then
   // this is an update to that record. Otherwise, this is a newly imported
@@ -129,7 +129,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
   // array so the prefix reflects the user definition. Also change the
   // vocabulary graph updated date.
   if ($gid) {
-    $namespaces[$main_ns_prefix] = $main_ns;
+    $vocabulary['namespaces'][$main_ns_prefix] = $main_ns;
     db_update('rdfx_vocabulary_graphs')
       ->fields(array('date_updated' => $current_time,))
       ->execute();
@@ -163,8 +163,8 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
       ->execute();
   }
   // Insert/update the other namespace mappings used in this vocabulary graph.
-  if (count($namespaces) > 0) {      
-    foreach ($namespaces as $prefix => $namespace) {
+  if (count($vocabulary['namespaces']) > 0) {      
+    foreach ($vocabulary['namespaces'] as $prefix => $namespace) {
       $query = db_merge('rdfx_namespaces')
         ->key(array('gid' => $gid, 'uri' => $namespace))
         ->fields(array('uri' => $namespace, 'prefix' => $prefix, 'gid' => $gid))
@@ -181,7 +181,8 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $namespaces) {
  * Saves vocabulary terms.
  */
 function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
-  $nsids = _rdfx_save_vocabulary($vocabulary_uri, $prefix, $vocabulary['namespaces']);
+  dpm($vocabulary);
+  $nsids = _rdfx_save_vocabulary($vocabulary_uri, $prefix, $vocabulary);
   foreach ($vocabulary['terms'] as $term_type => $terms) {
     foreach ($terms as $term_uri => $term_description) {
       list($term_ns, $term_local_name) = rdfx_split_uri($term_uri);
