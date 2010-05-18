@@ -154,19 +154,18 @@ function _evoc_fetch_terms(&$model) {
       foreach ($term_uris[$term_type] as $term_uri) {
         $terms[$term_type][$term_uri] = _evoc_query_for_term_description(&$model, $term_uri);
         foreach ($group['description'] as $property => $queries) {
-          foreach ($queries as $uri) {
-            foreach ($uri as $query_type) {
+          foreach ($queries as $predicate_uri) {
+            foreach ($predicate_uri as $query_type) {
               switch ($query_type) {
                 case 'subject':
-                  $query_x[$term_uri][$property][] = array('?', $uri, null);
+                  $query_x[$term_uri][$property][] = array('?', $predicate_uri, null);
                   break;
                 case 'object':
-                  $query_x[$term_uri][$property][] = array(null, $uri, '?');
+                  $query_x[$term_uri][$property][] = array(null, $predicate_uri, '?');
                   break;
               }
             }
           }
-          //dpm($query_x);
           $terms[$term_type][$term_uri][$property] = _evoc_query_find_uris($model, $query_x[$term_uri][$property]);
         }
       }
