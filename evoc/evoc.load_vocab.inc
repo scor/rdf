@@ -75,11 +75,12 @@ function _evoc_load__error_handler($errno, $errstr) {
  * @return array Array describing the vocabulary, its classes and properties.
  */
 function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
+  $vocabulary_details = _evoc_get_vocabulary_details($model, $ns_uri);
   $terms = _evoc_fetch_terms($model);
   $vocabulary = array(
       'uri' => $ns_uri,
-      'title' => _evoc_query_for_title($model, $ns_uri),
-      'description' => _evoc_query_for_description($model, $ns_uri),
+      'title' => $vocabulary_details['title'],
+      'description' => $vocabulary_details['description'],
       'terms' => $terms,
       'namespaces' => $namespaces,
   );
@@ -87,38 +88,34 @@ function _evoc_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
   return $vocabulary;
 }
 
-function _evoc_query_for_title(&$model, $ns_uri) {
-  $queries = array(
-    array($ns_uri, 'http://www.w3.org/2000/01/rdf-schema#label', '?'),
-    array($ns_uri, 'http://purl.org/dc/elements/1.1/title', '?'),
-    array($ns_uri, 'http://purl.org/dc/terms/title', '?'),
+function _evoc_get_vocabulary_details(&$model, $ns_uri) {
+  $query_predicates = array(
+    'title' => array(
+      'http://www.w3.org/2000/01/rdf-schema#label',
+      'http://purl.org/dc/elements/1.1/title',
+      'http://purl.org/dc/terms/title',
+    ),
+    'description' => array(
+      'http://www.w3.org/2000/01/rdf-schema#comment',
+      'http://purl.org/dc/elements/1.1/description',
+      'http://purl.org/dc/terms/description',
+    ),
   );
+  
   if (substr($ns_uri, -1) == '#') {
     $uri = substr($ns_uri, 0, -1);
-    $queries = array_merge($queries, array(
-      array($uri, 'http://www.w3.org/2000/01/rdf-schema#label', '?'),
-      array($uri, 'http://purl.org/dc/elements/1.1/title', '?'),
-      array($uri, 'http://purl.org/dc/terms/title', '?'),
-    ));
   }
-  return _evoc_query_find_literal($model, $queries);
-}
-
-function _evoc_query_for_description(&$model, $ns_uri) {
-  $queries = array(
-    array($ns_uri, 'http://www.w3.org/2000/01/rdf-schema#comment', '?'),
-    array($ns_uri, 'http://purl.org/dc/elements/1.1/description', '?'),
-    array($ns_uri, 'http://purl.org/dc/terms/description', '?'),
-  );
-  if (substr($ns_uri, -1) == '#') {
-    $uri = substr($ns_uri, 0, -1);
-    $queries = array_merge($queries, array(
-      array($uri, 'http://www.w3.org/2000/01/rdf-schema#comment', '?'),
-      array($uri, 'http://purl.org/dc/elements/1.1/description', '?'),
-      array($uri, 'http://purl.org/dc/terms/description', '?'),
-    ));
+  
+  foreach ($query_predicates as $query_element => $predicates) {
+    foreach ($predicates as $predicate) {
+      $queries[$query_element][] = array($ns_uri, $predicate, '?');
+      if ($uri !== NULL) {
+        $queries[$query_element][] = array($uri, $predicate, '?');
+      }
+    }
+    $details[$query_element] = _evoc_query_find_literal($model, $queries[$query_element]);
   }
-  return _evoc_query_find_literal($model, $queries);
+  return $details;
 }
 
 function _evoc_fetch_terms(&$model) {

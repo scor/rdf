@@ -162,6 +162,22 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
       ->fields(array('gid' => $gid))
       ->execute();
   }
+  // Insert/update the vocabulary title.
+  foreach ($vocabulary['title'] as $langcode => $title) {
+    $query = db_merge('rdfx_vocabulary_details')
+      ->key(array('gid' => $gid, 'language' => $langcode))
+      ->fields(array('language' => $langcode, 'label' => $title));
+    $status = $query->execute();
+  }
+  
+  // Insert/update the vocabulary description.
+  foreach ($vocabulary['description'] as $langcode => $description) {
+    $query = db_merge('rdfx_vocabulary_details')
+      ->key(array('gid' => $gid, 'language' => $langcode))
+      ->fields(array('language' => $langcode, 'description' => $description));
+    $status = $query->execute();
+  }
+  
   // Insert/update the other namespace mappings used in this vocabulary graph.
   if (count($vocabulary['namespaces']) > 0) {      
     foreach ($vocabulary['namespaces'] as $prefix => $namespace) {
@@ -169,7 +185,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
         ->key(array('gid' => $gid, 'uri' => $namespace))
         ->fields(array('uri' => $namespace, 'prefix' => $prefix, 'gid' => $gid))
         ->update(array('prefix' => $prefix));
-      $test = $query->execute();
+      $status = $query->execute();
     }
   }
 
@@ -181,7 +197,6 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
  * Saves vocabulary terms.
  */
 function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
-  dpm($vocabulary);
   $nsids = _rdfx_save_vocabulary($vocabulary_uri, $prefix, $vocabulary);
   foreach ($vocabulary['terms'] as $term_type => $terms) {
     foreach ($terms as $term_uri => $term_description) {
