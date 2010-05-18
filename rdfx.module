@@ -163,19 +163,23 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
       ->execute();
   }
   // Insert/update the vocabulary title.
-  foreach ($vocabulary['title'] as $langcode => $title) {
-    $query = db_merge('rdfx_vocabulary_details')
-      ->key(array('gid' => $gid, 'language' => $langcode))
-      ->fields(array('language' => $langcode, 'label' => $title));
-    $status = $query->execute();
+  if (count($vocabulary['title']) > 0) {
+    foreach ($vocabulary['title'] as $langcode => $title) {
+      $query = db_merge('rdfx_vocabulary_details')
+        ->key(array('gid' => $gid, 'language' => $langcode))
+        ->fields(array('language' => $langcode, 'label' => $title));
+      $status = $query->execute();
+    }
   }
   
   // Insert/update the vocabulary description.
-  foreach ($vocabulary['description'] as $langcode => $description) {
-    $query = db_merge('rdfx_vocabulary_details')
-      ->key(array('gid' => $gid, 'language' => $langcode))
-      ->fields(array('language' => $langcode, 'description' => $description));
-    $status = $query->execute();
+  if (count($vocabulary['description']) > 0) {
+    foreach ($vocabulary['description'] as $langcode => $description) {
+      $query = db_merge('rdfx_vocabulary_details')
+        ->key(array('gid' => $gid, 'language' => $langcode))
+        ->fields(array('language' => $langcode, 'description' => $description));
+      $status = $query->execute();
+    }
   }
   
   // Insert/update the other namespace mappings used in this vocabulary graph.
