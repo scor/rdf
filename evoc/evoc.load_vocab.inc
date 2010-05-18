@@ -49,12 +49,28 @@ function _evoc_fetch_from_file($filename) {
 }
 
 function &_evoc_parse_rdf($base_uri) {
+  $namespaces = array();
+  
   include_once(drupal_get_path('module', 'rdfx') . '/vendor/arc/ARC2.php');
   $parser = ARC2::getRDFParser();
   $parser->parse($base_uri);
-  $namespaces = array();
-  foreach ($parser->nsp as $uri => $prefix) {
-    $namespaces[$prefix] = $uri;
+  // If this is an N3 file, the namespaces array isn't populated. Iterate
+  // through the attached parser object's prefixes and remove the colon from
+  // the end of the prefix.
+  // @todo File an issue with ARC2.
+  switch ($parser->format) {
+    case 'turtle':
+      foreach ($parser->parser->prefixes as $prefix => $uri) {
+        dpm($prefix);
+        $formatted_prefix = str_replace(':', '', $prefix);
+        $namespaces[$formatted_prefix] = $uri;
+      }
+      break;
+    default:
+      foreach ($parser->nsp as $uri => $prefix) {
+        $namespaces[$prefix] = $uri;
+      }
+      break;
   }
   return array($parser->getTriples(), $namespaces);
 }
