@@ -15,7 +15,7 @@ function evoc_get_from_web($uri, $prefix) {
   if ($i !== false) {
     $schema_url = substr($schema_url, 0, $i);
   }
-  list($triples, $namespaces) = _evoc_parse_rdfxml($uri);
+  list($triples, $namespaces) = _evoc_parse_rdf($uri);
   return _evoc_extract_schema($triples, $namespaces, $prefix, $uri);
 }
 
@@ -30,7 +30,7 @@ function evoc_get_from_web($uri, $prefix) {
  */
 function evoc_get_from_file($filename, $uri, $prefix) {
   $content = _evoc_fetch_from_file($filename);
-  list($triples, $namespaces) = _evoc_parse_rdfxml($uri, $content);
+  list($triples, $namespaces) = _evoc_parse_rdf($uri, $content);
   return _evoc_extract_schema($triples, $namespaces, $prefix, $uri);
 }
 
@@ -48,9 +48,9 @@ function _evoc_fetch_from_file($filename) {
   return file_get_contents($filename);
 }
 
-function &_evoc_parse_rdfxml($base_uri) {
+function &_evoc_parse_rdf($base_uri) {
   include_once(drupal_get_path('module', 'rdfx') . '/vendor/arc/ARC2.php');
-  $parser = ARC2::getRDFXMLParser();
+  $parser = ARC2::getRDFParser();
   $parser->parse($base_uri);
   $namespaces = array();
   foreach ($parser->nsp as $uri => $prefix) {
