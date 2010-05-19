@@ -8,3 +8,4 @@ files[] = rdfx.install
 files[] = rdfx.module
 files[] = rdfx.pages.inc
 files[] = rdfx.inc
+files[] = rdfx.terms.inc
