@@ -384,24 +384,37 @@ function rdfx_term_types($reset = FALSE) {
     );
     
     $types['classes']['description'] = array(
-      /*'domain' => array(
-        'subject' => array(
-          'http://www.w3.org/2000/01/rdf-schema#domain',
+      'superclass' => array(
+        'http://www.w3.org/2000/01/rdf-schema#subClassOf' => array(
+          'object',
         ),
-        'object' => array(
+      ),
+      'disjoint' => array(
+        'http://www.w3.org/2002/07/owl#disjointWith' => array(
+          'object',
         ),
-      ),*/
+      ),
     );
     
     $types['properties']['description'] = array(
       'domain' => array(
         'http://www.w3.org/2000/01/rdf-schema#domain' => array(
-          'subject',
+          'object',
         ),
       ),
       'range' => array(
         'http://www.w3.org/2000/01/rdf-schema#range' => array(
-          'subject',
+          'object',
+        ),
+      ),
+      'superproperty' => array(
+        'http://www.w3.org/2000/01/rdf-schema#subPropertyOf' => array(
+          'object',
+        ),
+      ),
+      'inverse' => array(
+        'http://www.w3.org/2002/07/owl#inverseOf' => array(
+          'object',
         ),
       ),
     );
@@ -540,14 +553,14 @@ function _rdfx_fetch_terms(&$model) {
         
         $terms[$term_type][$term_uri] = _evoc_query_for_term_description(&$model, $term_uri);
         foreach ($group['description'] as $property => $queries) {
-          foreach ($queries as $predicate_uri) {
-            foreach ($predicate_uri as $query_type) {
+          foreach ($queries as $predicate_uri => $query_types) {
+            foreach ($query_types as $query_type) {
               switch ($query_type) {
                 case 'subject':
-                  $query_x[$term_uri][$property][] = array('?', $predicate_uri, null);
+                  $query_x[$term_uri][$property][] = array('?', $predicate_uri, $term_uri);
                   break;
                 case 'object':
-                  $query_x[$term_uri][$property][] = array(null, $predicate_uri, '?');
+                  $query_x[$term_uri][$property][] = array($term_uri, $predicate_uri, '?');
                   break;
               }
             }
