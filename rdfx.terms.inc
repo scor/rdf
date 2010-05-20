@@ -419,3 +419,111 @@ function _rdfx_get_term_details($tid, $langcode = 'und') {
   $details = $query->execute()->fetch();
   return $details;
 }
+
+/**
+ * Queries a set of triples for classes and properties, and builds
+ * an associative array describing the vocabulary and any 
+ * classes and properties found.
+ *
+ * @param array $model An ARC2-style array of triples an RDFS vocabulary or OWL ontology
+ * @param array $namespaces Associative array of namespaces parsed from the RDF file
+ * @param string $ns_prefix Namespace prefix for the vocabulary
+ * @param string $ns_uri Only terms in this namespace will be considered
+ * @return array Array describing the vocabulary, its classes and properties.
+ */
+function _rdfx_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
+  $vocabulary_details = _rdfx_get_vocabulary_details($model, $ns_uri);
+  $terms = _rdfx_fetch_terms($model);
+  $vocabulary = array(
+      'uri' => $ns_uri,
+      'title' => $vocabulary_details['title'],
+      'description' => $vocabulary_details['description'],
+      'terms' => $terms,
+      'namespaces' => $namespaces,
+  );
+  return $vocabulary;
+}
+
+function _rdfx_fetch_terms(&$model) {
+  $terms = array();
+  $term_uris = array();
+  
+  // Retrieve the queries for term retrieval. This may have been modified by
+  // other modules.
+  $term_type_groups = rdfx_term_types();
+
+  foreach($term_type_groups as $term_type_group => $group) {
+    foreach ($group['term_types'] as $term_type => $term) {
+      $query = array(
+        array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', $term['uri']),
+      );
+      foreach ($term['inference'] as $inference_uri => $query_types) {
+        foreach ($query_types as $query_type) {
+          switch ($query_type) {
+            case 'subject':
+              $query[] = array('?', $inference_uri, null);
+              break;
+            case 'object':
+              $query[] = array(null, $inference_uri, '?');
+              break;
+          }
+        }
+      }
+      $term_uris[$term_type] = _rdfx_query_find_uris($model, $query);
+      
+      // Add term details and various relationships for each term, as defined
+      // in rdfx_term_types() and altered by hook_rdfx_term_types_alter().
+      $query_x = array();
+      foreach ($term_uris[$term_type] as $term_uri) {
+        
+        $terms[$term_type][$term_uri] = _evoc_query_for_term_description(&$model, $term_uri);
+        foreach ($group['description'] as $property => $queries) {
+          foreach ($queries as $predicate_uri) {
+            foreach ($predicate_uri as $query_type) {
+              switch ($query_type) {
+                case 'subject':
+                  $query_x[$term_uri][$property][] = array('?', $predicate_uri, null);
+                  break;
+                case 'object':
+                  $query_x[$term_uri][$property][] = array(null, $predicate_uri, '?');
+                  break;
+              }
+            }
+          }
+          $terms[$term_type][$term_uri][$property] = _rdfx_query_find_uris($model, $query_x[$term_uri][$property]);
+        }
+      }
+    }
+  }
+  return $terms;
+}
+
+function _rdfx_get_vocabulary_details(&$model, $ns_uri) {
+  $query_predicates = array(
+    'title' => array(
+      'http://www.w3.org/2000/01/rdf-schema#label',
+      'http://purl.org/dc/elements/1.1/title',
+      'http://purl.org/dc/terms/title',
+    ),
+    'description' => array(
+      'http://www.w3.org/2000/01/rdf-schema#comment',
+      'http://purl.org/dc/elements/1.1/description',
+      'http://purl.org/dc/terms/description',
+    ),
+  );
+  
+  if (substr($ns_uri, -1) == '#') {
+    $uri = substr($ns_uri, 0, -1);
+  }
+
+  foreach ($query_predicates as $query_element => $predicates) {
+    foreach ($predicates as $predicate) {
+      $queries[$query_element][] = array($ns_uri, $predicate, '?');
+      if ($uri !== NULL) {
+        $queries[$query_element][] = array($uri, $predicate, '?');
+      }
+    }
+    $details[$query_element] = _rdfx_query_find_literal($model, $queries[$query_element]);
+  }
+  return $details;
+}

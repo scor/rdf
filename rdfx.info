@@ -9,3 +9,5 @@ files[] = rdfx.module
 files[] = rdfx.pages.inc
 files[] = rdfx.inc
 files[] = rdfx.terms.inc
+files[] = rdfx.import.inc
+files[] = rdfx.query.inc

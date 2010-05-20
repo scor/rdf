@@ -32,6 +32,8 @@ function rdfx_init() {
     @include_once RDF_ARC2_PATH . '/ARC2.php';
   }
   module_load_include('inc', 'rdfx', 'rdfx.terms');
+  module_load_include('inc', 'rdfx', 'rdfx.import');
+  module_load_include('inc', 'rdfx', 'rdfx.query');
 }
 
 /**
