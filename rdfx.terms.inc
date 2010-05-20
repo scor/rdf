@@ -276,48 +276,110 @@ function rdfx_term_types($reset = FALSE) {
     // as well. ie. should all OWL classes also have the type RDFS Class
     
     // @todo Switch to drupal cache
-    $types['classes']['term_types']['rdfs_class'] = array(
-      'uri' => 'http://www.w3.org/2000/01/rdf-schema#Class',
-      'inference' => array(
-        'http://www.w3.org/2000/01/rdf-schema#subClassOf' => array(
-          'subject',
-          'object',
-        ),
-        'http://www.w3.org/2000/01/rdf-schema#domain' => array(
-          'object',
-        ),
-        'http://www.w3.org/2000/01/rdf-schema#range' => array(
-          'object',
+    $types['classes']['term_types'] = array(
+      'rdfs_class' => array(
+        'uri' => 'http://www.w3.org/2000/01/rdf-schema#Class',
+        'inference' => array(
+          'http://www.w3.org/2000/01/rdf-schema#subClassOf' => array(
+            'subject',
+            'object',
+          ),
+          'http://www.w3.org/2000/01/rdf-schema#domain' => array(
+            'object',
+          ),
+          'http://www.w3.org/2000/01/rdf-schema#range' => array(
+            'object',
+          ),
         ),
       ),
-    );
-    $types['classes']['term_types']['owl_class'] = array(
-      'uri' => 'http://www.w3.org/2002/07/owl#Class',
-      'inference' => array(
-        'http://www.w3.org/2002/07/owl#equivalentClass' => array(
-          'subject',
-          'object',
-        ),
-        'http://www.w3.org/2002/07/owl#disjointWith' => array(
-          'subject',
-          'object',
+      'owl_class' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#Class',
+        'inference' => array(
+          'http://www.w3.org/2002/07/owl#equivalentClass' => array(
+            'subject',
+            'object',
+          ),
+          'http://www.w3.org/2002/07/owl#disjointWith' => array(
+            'subject',
+            'object',
+          ),
         ),
       ),
     );
 
-    $types['properties']['term_types']['rdf_property'] = array(
-      'uri' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property',
-      'inference' => array(
+    $types['properties']['term_types'] = array (
+      'rdf_property' => array(
+        'uri' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property',
+        'inference' => array(
+          'http://www.w3.org/2000/01/rdf-schema#domain' => array(
+            'subject',
+          ),
+          'http://www.w3.org/2000/01/rdf-schema#range' => array(
+            'subject',
+          ),
+          'http://www.w3.org/2000/01/rdf-schema#subPropertyOf' => array(
+            'subject',
+            'object',
+          ),
+          'http://www.w3.org/2002/07/owl#equivalentProperty' => array(
+            'subject',
+            'object',
+          ),
+          'http://www.w3.org/2002/07/owl#inverseOf' => array(
+            'subject',
+            'object',
+          ),
+        ),
       ),
-    );
-    $types['properties']['term_types']['owl_property_datatype'] = array(
-      'uri' => 'http://www.w3.org/2002/07/owl#DatatypeProperty',
-      'inference' => array(
+      'owl_property_datatype' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#DatatypeProperty',
+        'inference' => array(
+        ),
       ),
-    );
-    $types['properties']['term_types']['owl_property_object'] = array(
-      'uri' => 'http://www.w3.org/2002/07/owl#ObjectProperty',
-      'inference' => array(
+      'owl_property_object' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#ObjectProperty',
+        'inference' => array(
+        ),
+      ),
+      'owl_property_functional' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#FunctionalProperty',
+        'inference' => array(
+        ),
+      ),
+      'owl_property_inverse_functional' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#InverseFunctionalProperty',
+        'inference' => array(
+        ),
+      ),
+      'owl_property_symmetric' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#SymmetricProperty',
+        'inference' => array(
+        ),
+      ),
+      'owl_property_asymmetric' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#AsymmetricProperty',
+        'inference' => array(
+        ),
+      ),
+      'owl_property_annotation' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#AnnotationProperty',
+        'inference' => array(
+        ),
+      ),
+      'owl_property_reflexive' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#ReflexiveProperty',
+        'inference' => array(
+        ),
+      ),
+      'owl_property_irreflexive' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#IrreflexiveProperty',
+        'inference' => array(
+        ),
+      ),
+      'owl_property_transitive' => array(
+        'uri' => 'http://www.w3.org/2002/07/owl#TransitiveProperty',
+        'inference' => array(
+        ),
       ),
     );
     

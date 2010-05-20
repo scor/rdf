@@ -4,33 +4,6 @@ function _evoc_load__error_handler($errno, $errstr) {
     throw new Exception($errstr);
 }
 
-function _evoc_query_for_property_uris(&$model) {
-  // @todo Move all of the additional classes and property inferences to the
-  // rdfx_term_types array and delete this function.
-  
-  /*return _rdfx_query_find_uris($model, array(
-    //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'),
-    //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#DatatypeProperty'),
-    //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#ObjectProperty'),
-    //array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#FunctionalProperty'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#InverseFunctionalProperty'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#SymmetricProperty'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AnnotationProperty'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#ReflexiveProperty'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#IrreflexiveProperty'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#AsymmetricProperty'),
-    array('?', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/2002/07/owl#TransitiveProperty'),
-    array('?', 'http://www.w3.org/2000/01/rdf-schema#domain', null),
-    array('?', 'http://www.w3.org/2000/01/rdf-schema#range', null),
-    array('?', 'http://www.w3.org/2000/01/rdf-schema#subPropertyOf', null),
-    array(null, 'http://www.w3.org/2000/01/rdf-schema#subPropertyOf', '?'),
-    array('?', 'http://www.w3.org/2002/07/owl#equivalentProperty', null),
-    array(null, 'http://www.w3.org/2002/07/owl#equivalentProperty', '?'),
-    array('?', 'http://www.w3.org/2002/07/owl#inverseOf', null),
-    array(null, 'http://www.w3.org/2002/07/owl#inverseOf', '?'),
-  ));*/
-}
-
 function _evoc_query_for_term_description(&$model, $uri) {
   $label = _rdfx_query_find_literal($model, array(
     array($uri, 'http://www.w3.org/2000/01/rdf-schema#label', '?')
