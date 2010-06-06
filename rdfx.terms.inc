@@ -205,8 +205,8 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
             ->fields(array(
                 'tid' => $tid,
                 'language' => $lang,
-                'label' => $details['label'],
-                'comment' => $details['comment'],
+                'label' => isset($details['label']) ? $details['label'] : NULL,
+                'comment' => isset($details['comment']) ? $details['comment'] :  NULL,
             ))
             ->execute();
         }
