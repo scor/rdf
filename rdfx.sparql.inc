@@ -12,6 +12,12 @@
  *
  * @param $query
  *   The SPARQL query to execute.
+ * @param $endpoint
+ *   The endpoint to try the query against.
+ * @options
+ *   Options to use with the remote or local store.
+ *      Remote:
+ *        'store_read_key'
  * @param $datasets
  *   An array of datasets to query (optional). Implementation specific, i.e.
  *   ARC2 seems to require them to be pre-LOADed while public endpoints load
@@ -19,9 +25,15 @@
  * @return
  *   The SPARQL results.
  */
-function rdfx_sparql_request($query, $datasets = array()) {
+function rdfx_sparql_request($query, $endpoint = NULL, $options = array(), $datasets = array()) {
+  // If an endpoint was provided, simply run this query against the endpoint.
+  if ($endpoint != NULL) {
+    $rows = _rdfx_sparql_request($query, $endpoint, $options);
+    return $rows;
+  }
+  
+  // Otherwise, load the datasets into either a local or remote endpoint.
   // @todo Check if the datasets are available before trying to query them.
-
   // Converts to array is string given.
   if (!is_array($datasets)) {
     $datasets = array($datasets);
@@ -55,27 +67,40 @@ function rdfx_sparql_request($query, $datasets = array()) {
     );
 
     foreach ($endpoints as $endpoint) {
-      // Initialize connection with the endpoint.
-      $store = rdfx_arc2_init_remote_store($endpoint);
-
-      // Execute the query.
-      $rs = $store->query($query);
-      if (!$store->getErrors()) {
-        // Success!
-        $rows = $rs['result']['rows'];
-        // We have results so no point trying the other endpoints.
+      $rows = _rdfx_sparql_request($query, $endpoint, $options);
+      if (!empty($rows)) {
+        // If we received results, stop trying.
         break;
       }
     }
   }
 
-  // Returns the errors if there are still no results at this stage.
-  // @todo beware the query might have no result.
-  if (empty($rows)) {
-    return $store->getErrors();
-  }
-
   return $rows;
+}
+
+/**
+ * Runs a query against an endpoint.
+ *
+ * @param $query
+ *   The SPARQL query to execute.
+ * @param $endpoint
+ *   The endpoint to try the query against.
+ * @options
+ *   Options to use with the remote or local store, as passed to
+ *   rdfx_sparql_request.
+ */
+function _rdfx_sparql_request($query, $endpoint, $options) {
+  // Initialize connection with the endpoint.
+  $store = rdfx_arc2_init_remote_store($endpoint, $options);
+
+  // Execute the query.
+  $rs = $store->query($query);
+  if (!$store->getErrors()) {
+    // Success!
+    return $rs['result']['rows'];
+  }
+  
+  return NULL;
 }
 
 /**
@@ -138,11 +163,12 @@ function rdfx_arc2_init_store($name, $endpoint = FALSE) {
  * @return
  *   An ARC2 store object.
  */
-function rdfx_arc2_init_remote_store($endpoint) {
+function rdfx_arc2_init_remote_store($endpoint, $options) {
   /* configuration */
   $config = array(
     /* remote endpoint */
     'remote_store_endpoint' => $endpoint,
+    'store_read_key' => $options['store_read_key'] ? $options['store_read_key'] : '',
   );
 
   /* instantiation */
