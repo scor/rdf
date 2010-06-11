@@ -97,7 +97,7 @@ function _rdfx_sparql_request($query, $endpoint, $options) {
   $rs = $store->query($query);
   if (!$store->getErrors()) {
     // Success!
-    return $rs['result']['rows'];
+    return $rs;
   }
   
   return NULL;
