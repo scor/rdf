@@ -6,7 +6,7 @@
  */
 function rdfx_entity_view($type, $entity) {
   // Constructs RDF representing the entity object.
-  $function = 'rdfx_build_' . $type . '_rdf';
+  $function = 'rdfx_build_rdf_' . $type;
   if (function_exists($function)) {
     $rdf = $function($entity);
   }
@@ -28,7 +28,7 @@ function rdfx_entity_view($type, $entity) {
 /**
  * Constructs an RDF representation of a node.
  */
-function rdfx_build_node_rdf($node) {
+function rdfx_build_rdf_node($node) {
   // URI of the node.
   $doc_uri = url('node/' . $node->nid, array('absolute' => TRUE));
   // URI of the resource being described in the node.
