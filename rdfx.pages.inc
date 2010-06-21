@@ -13,6 +13,8 @@ function rdfx_entity_view($type, $entity) {
 
   // Allow modules to make their own additions to the RDF of the entity.
   // Example: access control, etc.
+  // @todo test
+  // @todo drupal_alter()
   module_invoke_all('rdfx_entity_build', $entity);
 
   // Ouptuts the entity as RDF.

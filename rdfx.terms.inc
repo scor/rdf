@@ -68,7 +68,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
   // this is an update to that record. Otherwise, this is a newly imported
   // source.
   $gid = rdfx_get_gid($main_ns);
-  
+
   // If there is an existing vocabulary, make sure that the main_ns is in the
   // namespaces array and that the user defined mapping is the last in the
   // array so the prefix reflects the user definition. Also change the
@@ -85,11 +85,11 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
   else {
     // @todo If the vocab URI isn't used in any terms, don't add it to ns table.
     // This may happen where multiple files are defining a vocabulary.
-    
+
     // @todo This should be handled as a transaction in case there is an error
     // in the middle. If there is an error, then there will be an SQL error
     // when the user retries the import.
-    
+
     // Insert this namespace to get the nsid. The vocabulary_source entry will
     // point to this nsid for the main_ns. We temporarily insert 0 for the gid,
     // then update when we have the real gid.
@@ -116,7 +116,7 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
       $status = $query->execute();
     }
   }
-  
+
   // Insert/update the vocabulary description.
   if (count($vocabulary['description']) > 0) {
     foreach ($vocabulary['description'] as $langcode => $description) {
@@ -126,9 +126,9 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
       $status = $query->execute();
     }
   }
-  
+
   // Insert/update the other namespace mappings used in this vocabulary graph.
-  if (count($vocabulary['namespaces']) > 0) {      
+  if (count($vocabulary['namespaces']) > 0) {
     foreach ($vocabulary['namespaces'] as $prefix => $namespace) {
       $query = db_merge('rdfx_namespaces')
         ->key(array('gid' => $gid, 'uri' => $namespace))
@@ -156,7 +156,7 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
       else {
         // If the namespace wasn't mapped to a prefix in the source graph, we
         // didn't save it to the namespaces table, so we need to add an entry.
-        
+
         // @todo For the prefix value, we save the URI... should this be changed?
         $gid = rdfx_get_gid($vocabulary_uri);
         $nsid = db_insert('rdfx_namespaces')
@@ -176,7 +176,7 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
           ))
           ->execute();
       }
-      
+
       // Add the current type to this term in {rdfx_term_types}.
       db_merge('rdfx_term_types')
         ->key(array('tid' => $tid, 'type' => $term_type))
@@ -185,7 +185,7 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
             'type' => $term_type,
         ))
         ->execute();
-      
+
       // Add label and comment to {rdfx_term_details}.
       $term_details = array();
       if (isset($term_description['label'])) {
@@ -211,7 +211,7 @@ function rdfx_save_terms($vocabulary_uri, $prefix, $vocabulary) {
             ->execute();
         }
       }
-      
+
       // Add relationships to their respective tables. This is handled as a
       // complicated set of loops to reduce code duplication. To add a new
       // relationship, just add the array key that is used in
@@ -269,12 +269,12 @@ function rdfx_term_types($reset = FALSE) {
   if ($reset || !isset($types)) {
     $types['classes']['term_types'] = array();
     $types['properties']['term_types'] = array();
-    
+
     $term_details = '';
-    
+
     // @todo Should the inference consider subProp and subClass relationships
     // as well. ie. should all OWL classes also have the type RDFS Class
-    
+
     // @todo Switch to drupal cache
     $types['classes']['term_types'] = array(
       'rdfs_class' => array(
@@ -382,7 +382,7 @@ function rdfx_term_types($reset = FALSE) {
         ),
       ),
     );
-    
+
     $types['classes']['description'] = array(
       /*'domain' => array(
         'subject' => array(
@@ -392,7 +392,7 @@ function rdfx_term_types($reset = FALSE) {
         ),
       ),*/
     );
-    
+
     $types['properties']['description'] = array(
       'domain' => array(
         'http://www.w3.org/2000/01/rdf-schema#domain' => array(
@@ -484,7 +484,7 @@ function _rdfx_get_term_details($tid, $langcode = 'und') {
 
 /**
  * Queries a set of triples for classes and properties, and builds
- * an associative array describing the vocabulary and any 
+ * an associative array describing the vocabulary and any
  * classes and properties found.
  *
  * @param array $model An ARC2-style array of triples an RDFS vocabulary or OWL ontology
@@ -509,7 +509,7 @@ function _rdfx_extract_schema(&$model, $namespaces, $ns_prefix, $ns_uri) {
 function _rdfx_fetch_terms(&$model) {
   $terms = array();
   $term_uris = array();
-  
+
   // Retrieve the queries for term retrieval. This may have been modified by
   // other modules.
   $term_type_groups = rdfx_term_types();
@@ -532,12 +532,12 @@ function _rdfx_fetch_terms(&$model) {
         }
       }
       $term_uris[$term_type] = _rdfx_query_find_uris($model, $query);
-      
+
       // Add term details and various relationships for each term, as defined
       // in rdfx_term_types() and altered by hook_rdfx_term_types_alter().
       $query_x = array();
       foreach ($term_uris[$term_type] as $term_uri) {
-        
+
         $terms[$term_type][$term_uri] = _evoc_query_for_term_description(&$model, $term_uri);
         foreach ($group['description'] as $property => $queries) {
           foreach ($queries as $predicate_uri) {
@@ -573,7 +573,7 @@ function _rdfx_get_vocabulary_details(&$model, $ns_uri) {
       'http://purl.org/dc/terms/description',
     ),
   );
-  
+
   if (substr($ns_uri, -1) == '#') {
     $uri = substr($ns_uri, 0, -1);
   }

@@ -5,9 +5,9 @@
  * @file
  * User interface for RDF.
  */
- 
+
 define('RDFUI_CURIE_REGEX',"/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/");
- 
+
 /**
  * Implements hook_help().
  */
@@ -50,7 +50,7 @@ function rdfui_permission() {
  */
 function rdfui_menu() {
   $items = array();
-  
+
   // Create tabs for all possible bundles.
   foreach (entity_get_info() as $entity_type => $info) {
     if ($info['fieldable']) {
@@ -65,16 +65,16 @@ function rdfui_menu() {
           if ($entity_type == 'node') {
             $title = t('Content RDF Mappings');
             $weight = 50;
-          }  
+          }
           elseif ($entity_type == 'comment') {
             $title = t('Comment RDF Mappings');
             $weight = 60;
-          }  
+          }
           else {
             $title = t('RDF Mappings');
             $weight = 50;
-          }  
-                    
+          }
+
           $items["$path/rdf"] = array(
             'title' => $title,
             // @todo Load arguments are not necessary / are cruft, right?
@@ -83,26 +83,26 @@ function rdfui_menu() {
             'page arguments' => array('rdfui_admin_rdf_overview_form', $entity_type, $bundle_arg, $instance_position),
             'type' => MENU_LOCAL_TASK,
             'weight' => $weight,
-          ) + $access;        
+          ) + $access;
         }
       }
     }
   }
-  
+
   $items['rdfui/datatype/autocomplete'] = array(
     'title' => t('RDF datatype autocomplete'),
     'page callback' => 'rdfui_datatype_autocomplete',
     'access arguments' => array('administer RDF field mappings'),
     'type' => MENU_CALLBACK,
   );
-  
+
   $items['rdfui/predicates/autocomplete'] = array(
     'title' => t('RDF predicates autocomplete'),
     'page callback' => 'rdfui_predicates_autocomplete',
     'access arguments' => array('administer RDF field mappings'),
     'type' => MENU_CALLBACK,
-  );     
-  
+  );
+
   return $items;
 }
 
@@ -115,7 +115,7 @@ function rdfui_menu() {
 function rdfui_admin_rdf_overview_form($form, &$form_state, $entity_type, $bundle, $instance) {
   $bundle = field_extract_bundle($entity_type, $bundle);
   $fields = field_info_instances($entity_type, $bundle);
-  $mapping = rdf_mapping_load($entity_type, $bundle); 
+  $mapping = rdf_mapping_load($entity_type, $bundle);
 
   $form['rdf_rdftype'] = array(
     '#type' => 'textarea',
@@ -142,8 +142,8 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $entity_type, $bundl
 
   $form['field_names'] = array('#type' => 'value', '#value' => array_keys($fields));
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save RDF mapping'));
-  
-  drupal_add_js(array('rdfui' => array('termRegex' => RDFUI_CURIE_REGEX)), 'setting'); 
+
+  drupal_add_js(array('rdfui' => array('termRegex' => RDFUI_CURIE_REGEX)), 'setting');
 
   return $form;
 }
@@ -152,14 +152,14 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $entity_type, $bundl
  * Implements hook_form_FORM_ID_alter().
  */
 function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
-  
+
   $field_name = $form['#field']['field_name'];
   $instance = $form['instance'];
   $label = isset($instance['label']) ? $instance['label']['#default_value'] : $instance['field_name'];
   $object_type = $instance['object_type']['#value'];
-  
+
   $mapping = rdf_mapping_load($object_type, $instance['bundle']['#value']);
-    
+
   $form['rdf'] = array(
     '#type' => 'fieldset',
     '#title' => t('@label RDF Mapping', array('@label' => $label)),
@@ -167,13 +167,13 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
 
   // add the predicate, datatype, etc fields
   rdfui_predicate_fieldset($form['rdf'], $mapping, $field_name, $label);
-  
+
   $form['submit']['#weight'] = 1;
-  
+
   // add submit and validate handlers
   $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_field_ui_field_edit_form_validate'));
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_field_ui_field_edit_form_submit'));
-  
+
   drupal_add_js(array('rdfui'=>array('termRegex'=>RDFUI_CURIE_REGEX)), 'setting');
 }
 
@@ -195,7 +195,7 @@ function rdfui_form_node_type_form_alter(&$form, &$form_state) {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#group' => 'additional_settings'
-  );  
+  );
   $form['rdf_settings']['rdf_rdftype'] = array(
     '#type' => 'fieldset',
     '#title' => 'RDF Type',
@@ -204,23 +204,23 @@ function rdfui_form_node_type_form_alter(&$form, &$form_state) {
     '#type' => 'fieldset',
     '#title' => 'RDF Title Predicate',
   );
-  
+
   // Add the RDF type field for the bundle.
   rdfui_rdftype_fieldset($form['rdf_settings']['rdf_rdftype'], $mapping);
   //Add the predicate, datatype, property fields for the bundle title.
   rdfui_predicate_fieldset($form['rdf_settings']['rdf_title'], $mapping, 'title', 'title');
-  
+
   // add submit and validate handlers
   $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_node_type_form_validate'));
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_node_type_form_submit'));
-  
+
   drupal_add_js(array('rdfui'=>array('termRegex'=>RDFUI_CURIE_REGEX)), 'setting');
 }
 
 
 function rdfui_form_field_ui_field_edit_form_validate($form, &$form_state) {
   $field_name = $form['#field']['field_name'];
-  
+
   _rdfui_validate_terms($form_state, $field_name);
   _rdfui_validate_datatype($form_state, $field_name);
 }
@@ -228,12 +228,12 @@ function rdfui_form_field_ui_field_edit_form_validate($form, &$form_state) {
 function rdfui_admin_rdf_overview_form_validate($form, &$form_state) {
   // Validate bundle's RDF type(s).
   _rdfui_validate_terms($form_state);
-  
+
   // Validate title predicate(s).
   $field_name = 'title';
   _rdfui_validate_terms($form_state, $field_name);
   _rdfui_validate_datatype($form_state, $field_name);
-  
+
   // Validate predicates for all fields.
   foreach ($form_state['values']['field_names'] as $field_name) {
     _rdfui_validate_terms($form_state, $field_name);
@@ -244,7 +244,7 @@ function rdfui_admin_rdf_overview_form_validate($form, &$form_state) {
 function rdfui_form_node_type_form_validate($form, &$form_state) {
   // Validate bundle's RDF type(s).
   _rdfui_validate_terms($form_state);
-  
+
   // Validate title predicate(s).
   $field_name = 'title';
   _rdfui_validate_terms($form_state, $field_name);
@@ -271,7 +271,7 @@ function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
   $object_type = $form['instance']['object_type']['#value'];
   $bundle = $form['instance']['bundle']['#value'];
   $field_name = $form['#field']['field_name'];
-  
+
   _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name);
 }
 
@@ -290,19 +290,19 @@ function rdfui_form_node_type_form_submit($form, &$form_state) {
  * Menu callback for datatype autocomplete
  */
 function rdfui_datatype_autocomplete($string) {
-  
+
   //@todo Make sure datatype is only active if property is the relationship.
-  
+
   $datatypes = 'xsd:string, xsd:boolean, xsd:decimal, xsd:float, xsd:double, xsd:dateTime, xsd:time, xsd:date, xsd:gYearMonth, xsd:gYear, xsd:gMonthDay, xsd:gDay, xsd:gMonth, xsd:hexBinary, xsd:base64Binary, xsd:anyURI, xsd:normalizedString, xsd:token, xsd:language, xsd:NMTOKEN, xsd:Name, xsd:NCName, xsd:integer, xsd:nonPositiveInteger, xsd:negativeInteger, xsd:long, xsd:int, xsd:short, xsd:byte, xsd:nonNegativeInteger, xsd:unsignedLong, xsd:unsignedInt, xsd:unsignedShort, xsd:unsignedByte, xsd:positiveInteger';
-  
+
   $datatypes = explode(', ', $datatypes);
   $matches = array();
-  
+
   foreach($datatypes as $datatype) {
     if (preg_match("/^$string/", $datatype))
       $matches[$datatype] = $datatype;
-  }  
-  
+  }
+
   drupal_json_output($matches);
 }
 
@@ -335,7 +335,7 @@ function rdfui_predicate_fieldset(&$fieldset, $mapping, $field_name, $label) {
     '#resizable' => FALSE,
     '#attributes' => array('class' => array('term-store'))
   );
-  
+
   // @todo Possibly autocomplete the builtin xsd datatypes, but do not restrict to xsd datatypes.
   $fieldset['rdf_'. $field_name .'_datatype'] = array(
     '#type' => 'textfield',
@@ -357,7 +357,7 @@ function rdfui_predicate_fieldset(&$fieldset, $mapping, $field_name, $label) {
     '#description' => t('If a field contains a literal, such as a string or an integer, then the property attribute should be used. If it contains a url or node reference, the !rel or !rev attribute should be used.', array('@label' => $label, '!rel' => l('rel','http://www.w3.org/TR/html401/struct/links.html#adef-rel'), '!rev' => l('rev','http://www.w3.org/TR/html401/struct/links.html#adef-rev'))),
     '#options' => array('property'=>'property', 'rel'=>'rel', 'rev'=>'rev'),
   );
-    
+
   drupal_add_css(drupal_get_path('module', 'rdfui') .'/css/rdfui.css', 'file');
   drupal_add_js(drupal_get_path('module', 'rdfui') .'/js/rdfui.js', 'file');
 }
@@ -366,7 +366,7 @@ function rdfui_predicate_fieldset(&$fieldset, $mapping, $field_name, $label) {
  * Appends the RDF type fieldset. Because this fieldset is always on the same
  * page as fields created by rdfui_predicate_fieldset(), which add the css and
  * js files, we do not add the files again.
- * 
+ *
  */
 function rdfui_rdftype_fieldset(&$fieldset, $mapping) {
   $fieldset = array(
@@ -377,7 +377,7 @@ function rdfui_rdftype_fieldset(&$fieldset, $mapping) {
     '#resizable' => FALSE,
     '#attributes' => array('class' => array('term-store'))
   );
-    
+
 }
 
 /**
@@ -387,20 +387,20 @@ function _rdfui_validate_terms($form_state, $field_name = '') {
   // If the field_name is NOT NULL, then this is a predicate. If it is NULL,
   // this is a type.
   $field_id = $field_name != NULL ? 'rdf_'. $field_name .'_predicates' : 'rdf_rdftype';
-  
+
   // Validate terms.
   if ($terms = trim($form_state['values'][$field_id])) {
     $terms = explode("\n",$terms);
     $error = '';
     foreach($terms as $term) {
-      $term = trim($term);      
+      $term = trim($term);
       if (!preg_match(RDFUI_CURIE_REGEX, $term)){
         // @todo Add a page to the drupal docs about CURIE format and adding
         // namespaces. Then add a link to this error that says 'For more info'.
         $error .= t('Term %term must be in CURIE format.', array('%term'=>$term));
       }
     }
-    
+
     if ($error) {
       form_set_error($field_id, $error);
     }
@@ -414,7 +414,7 @@ function _rdfui_validate_datatype($form_state, $field_name) {
 
   // validate datatype
   if ($datatype = trim($form_state['values']['rdf_'. $field_name .'_datatype'])) {
-    if(!preg_match(RDFUI_CURIE_REGEX, $datatype))    
+    if(!preg_match(RDFUI_CURIE_REGEX, $datatype))
       form_set_error('rdf_'. $field_name .'_datatype', t('Datatype %datatype is an invalid format.', array('%datatype'=>$datatype)));
   }
 
@@ -425,7 +425,7 @@ function _rdfui_validate_datatype($form_state, $field_name) {
  */
 
 function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
-  
+
   // @ todo Why would we need this mapping_load? I think we don't
   $mapping = rdf_mapping_load($object_type, $bundle);
   // Set the RDF type if it is in this form.
@@ -437,7 +437,7 @@ function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
   $mapping[$field_name]['predicates'] = array_map('trim', $predicates);
   $mapping[$field_name]['datatype'] = $form_state['values']['rdf_'. $field_name .'_datatype'];
   $mapping[$field_name]['type'] = $form_state['values']['rdf_'. $field_name .'_type'];
-  
+
   $mapping_info = array(
     'mapping' => $mapping,
     'type' => $object_type,
@@ -461,12 +461,12 @@ function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
  */
 function theme_rdfui_term_autocomplete($variables) {
   $term = $variables['term'];
-  
+
   $output = '<span class="form-item rdf-term-autocomplete">';
   $output .= $term->curie;
   $output .= '<span class="rdf-label-autocomplete">' . $term->label . '</span>';
   $output .= '<span class="rdf-comment-autocomplete">' . $term->comment . '</span>';
   $output .= '</span>';
-  
+
   return $output;
 }

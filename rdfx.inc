@@ -6,7 +6,7 @@
  *
  * The definitions of these tokens were taken from the XML spec
  * (Extensible Markup Language 1.0) at L<http://www.w3.org/TR/REC-xml>.
- 
+
  * Also contains the regular expressions for the following tokens from the
  * XML Namespaces spec at L<http://www.w3.org/TR/REC-xml-names>:
  * NCNameChar, NCName, QName, Prefix and LocalPart.
@@ -29,14 +29,14 @@
   define('ENTITY_REF', '(?:\&' . NAME . ';)');
   define('CHAR_REF', '(?:\&#(?:[0-9]+|x[0-9a-fA-F]+)');
   define('REFERENCE', '(?:' . ENTITY_REF . '|' . CHAR_REF . ')');
-  
+
   // Comment from original code: What if it contains entity references?
   define('ATT_VALUE', "(?:\"(?:[^\"&<]*|" . REFERENCE . ")\"|'(?:[^\'&<]|" . REFERENCE .")*')");
-  
+
   // Prefix definitions from the XML Namespace specification.
   define('NC_NAME_CHAR', '(?:[-._]|' . LETTER . '|' . DIGIT . '|' . COMBINING_CHAR . '|' . EXTENDER . ')');
   define('NC_NAME', '(?:(?:_|' . LETTER . ')' . NC_NAME_CHAR .'*)');
-  
+
   define('PREFIX', NC_NAME);
   define('LOCAL_PART', NC_NAME);
   define('QNAME', '(?:(?:' . PREFIX .':)?' . LOCAL_PART . ')');

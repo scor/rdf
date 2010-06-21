@@ -28,7 +28,7 @@ function rdfx_fetch_rdf($uri, $prefix, $filename = NULL) {
     $content = file_get_contents($filename);
     return _rdfx_parse_rdf($uri, $content);
   }
-  
+
   $schema_url = $uri;
   $i = strpos($schema_url, '#');
   if ($i !== false) {
@@ -39,7 +39,7 @@ function rdfx_fetch_rdf($uri, $prefix, $filename = NULL) {
 
 function &_rdfx_parse_rdf($base_uri) {
   $namespaces = array();
-  
+
   include_once(drupal_get_path('module', 'rdfx') . '/vendor/arc/ARC2.php');
   $parser = ARC2::getRDFParser();
   $parser->parse($base_uri);
@@ -47,11 +47,10 @@ function &_rdfx_parse_rdf($base_uri) {
   // through the attached parser object's prefixes and remove the colon from
   // the end of the prefix.
   // @todo File an issue with ARC2.
-  dpm($parser);
+
   switch ($parser->format) {
     case 'turtle':
       foreach ($parser->parser->prefixes as $prefix => $uri) {
-        dpm($prefix);
         $formatted_prefix = str_replace(':', '', $prefix);
         $namespaces[$formatted_prefix] = $uri;
       }

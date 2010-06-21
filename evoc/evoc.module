@@ -29,7 +29,7 @@ function evoc_import_vocabulary($vocabulary_uri, $vocabulary_prefix) {
   // Fetch the defined terms and a list of the defined namespaces.
   $fetched_vocab = evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix);
   rdfx_save_terms($vocabulary_uri, $vocabulary_prefix, $fetched_vocab);
-  
+
   // Refresh the static variable that holds the array of namespaces.
   drupal_static_reset('rdfx_get_namespaces');
   //_evoc_save_rdf_terms($vocabulary_uri, $vocabulary_prefix, $fetched_terms);
@@ -49,10 +49,10 @@ function evoc_import_vocabulary($vocabulary_uri, $vocabulary_prefix) {
  * @return
  *   An array of fetched terms.
  */
-function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_location = NULL) {  
+function evoc_fetch_vocabulary($vocabulary_uri, $vocabulary_prefix, $vocabulary_location = NULL) {
   // Uses the vocabulary namespace URI if no specific location is given.
   $vocabulary_location = $vocabulary_location ? $vocabulary_location : $vocabulary_uri;
-  
+
   module_load_include('inc', 'evoc', 'evoc.load_vocab');
   list($triples, $namespaces) = rdfx_fetch_rdf($vocabulary_uri, $vocabulary_prefix);
   $vocabulary = _rdfx_extract_schema($triples, $namespaces, $vocabulary_prefix, $vocabulary_uri);

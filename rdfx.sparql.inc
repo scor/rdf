@@ -31,7 +31,7 @@ function rdfx_sparql_request($query, $endpoint = NULL, $options = array(), $data
     $rows = _rdfx_sparql_request($query, $endpoint, $options);
     return $rows;
   }
-  
+
   // Otherwise, load the datasets into either a local or remote endpoint.
   // @todo Check if the datasets are available before trying to query them.
   // Converts to array is string given.
@@ -99,7 +99,7 @@ function _rdfx_sparql_request($query, $endpoint, $options) {
     // Success!
     return $rs;
   }
-  
+
   return NULL;
 }
 
@@ -116,7 +116,7 @@ function _rdfx_sparql_request($query, $endpoint, $options) {
 function rdfx_arc2_init_store($name, $endpoint = FALSE) {
   // @todo fix this. Error reporting is off because ARC2 throws strict warnings.
   error_reporting(0);
-  
+
   $db_spec = $GLOBALS['databases']['default']['default'];
 
   $config = array(
