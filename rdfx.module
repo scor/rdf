@@ -44,7 +44,6 @@ function rdfx_menu() {
     'title' => 'Site vocabulary',
     'description' => 'RDF description of the site schema.',
     'page callback' => 'drupal_get_form',
-//    'page arguments' => array(''),
     'access arguments' => array('access RDF data'),
     'file' => 'rdfx.pages.inc',
   );
@@ -55,7 +54,6 @@ function rdfx_menu() {
     'access arguments' => array('access RDF data'),
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
-//    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'file' => 'rdfx.pages.inc',
   );
   return $items;
