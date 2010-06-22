@@ -75,30 +75,41 @@ function rdfx_build_rdf_node($node) {
   $res->base = url('', array('absolute' => TRUE));
   $res->ns = rdfx_get_namespaces();
 
-  // Non field API properties.
-  // RDF type.
-  if (!empty($node->rdf_mapping['rdftype'])) {
-    $doc_props['rdf:type'] = $node->rdf_mapping['rdftype'];
-  }
-  // Title.
-  if (!empty($node->rdf_mapping['title'])) {
-    $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping['title'], $node->title);
-  }
-  // Date.
-  // @todo creation date: the user should be able to opt in/out.
-  // @todo modified date: the user should be able to opt in/out.
-  if (!empty($node->rdf_mapping['created'])) {
-    $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping['created'], $node->created);
-  }
-  // Creator.
-  if (!empty($node->rdf_mapping['created'])) {
-    // We need to pass the uri of the sioc:has_creator user.
-    $user_uri = url('user/' . $node->uid, array('absolute' => TRUE));
-    $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping['uid'], $user_uri);
-  }
-  // Comment count.
-  if (!empty($node->rdf_mapping['comment_count'])) {
-    $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping['comment_count'], $node->comment_count);
+  // Container for the triples about the document.
+  $doc_props = array();
+
+  // Only include data which has RDF mapping associated with it.
+  foreach ($node->rdf_mapping as $name => $mapping) {
+    switch ($name) {
+      // Non field API properties.
+      case 'rdftype' :
+         $doc_props['rdf:type'] = $node->rdf_mapping['rdftype'];
+      break;
+
+      case 'title' :
+        $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $node->$name);
+      break;
+
+      case 'created' :
+        // @todo creation date: the user should be able to opt in/out.
+        // @todo modified date: the user should be able to opt in/out.
+        $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $node->$name);
+      break;
+
+      case 'created' :
+        $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $node->$name);
+      break;
+
+      case 'uid' :
+        // We need to pass the uri of the sioc:has_creator user.
+        $user_uri = url('user/' . $node->uid, array('absolute' => TRUE));
+        $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $user_uri);
+      break;
+
+      case 'comment_count' :
+        $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $node->$name);
+      break;
+    }
   }
 
   // Attach the node properties to the document URI.
