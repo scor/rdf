@@ -76,14 +76,25 @@ function rdfx_build_rdf_node($node) {
   $res->ns = rdfx_get_namespaces();
 
   // Non field API properties.
+  // RDF type.
   if (!empty($node->rdf_mapping['rdftype'])) {
     $doc_props['rdf:type'] = $node->rdf_mapping['rdftype'];
   }
+  // Title.
   if (!empty($node->rdf_mapping['title'])) {
-    foreach ($node->rdf_mapping['title']['predicates'] as $p) {
-      // @todo better way of typing literal or uris.
-      $doc_props[$p] = $node->title;
-    }
+    $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping['title'], $node->title);
+  }
+  // Date.
+  // @todo creation date: the user should be able to opt in/out.
+  // @todo modified date: the user should be able to opt in/out.
+  if (!empty($node->rdf_mapping['created'])) {
+    $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping['created'], $node->created);
+  }
+  // Creator.
+  if (!empty($node->rdf_mapping['created'])) {
+    // We need to pass the uri of the sioc:has_creator user.
+    $user_uri = url('user/' . $node->uid, array('absolute' => TRUE));
+    $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping['uid'], $user_uri);
   }
 
   // Attach the node properties to the document URI.
@@ -92,4 +103,47 @@ function rdfx_build_rdf_node($node) {
   $res->index = $res->expandPNames($index);
 
   return $res;
+}
+
+/**
+ * Helper function to build an ARC2 index composed of predicates and objects.
+ */
+function _rdfx_build_arc2_index_p_o($mapping, $data = NULL) {
+  // The type of mapping defaults to 'property'.
+  $type = isset($mapping['type']) ? $mapping['type'] : 'property';
+
+  switch ($type) {
+    // The mapping expresses the relationship between two resources.
+    case 'rel':
+      foreach ($mapping['predicates'] as $p) {
+        $props[$p][] = array(
+          'value' => $data,
+          'type' => 'uri',
+        );
+      }
+      break;
+
+    case 'rev': // Not supported yet.
+      // @todo
+      break;
+
+    // The mapping expresses the relationship between a resource and some
+    // literal text.
+    case 'property':
+      // Convert $data to a specific format as per the callback function.
+      if (isset($data) && isset($mapping['callback']) && function_exists($mapping['callback'])) {
+        $callback = $mapping['callback'];
+        $data = $callback($data);
+      }
+      foreach ($mapping['predicates'] as $p) {
+        $props[$p][] = array(
+          'value' => $data,
+          'type' => 'literal',
+          'datatype' => isset($mapping['datatype']) ? $mapping['datatype'] : '',
+        );
+      }
+      break;
+  }
+
+  return $props;
 }

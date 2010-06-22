@@ -78,8 +78,31 @@ class RdfxNodeSerializationTestCase extends DrupalWebTestCase {
     $o = array (
       'value'=> $node->title,
       'type'=> 'literal',
+      'datatype'=> '',
     );
-    $this->assertTrue(in_array($o, $g->index[$uri]['http://purl.org/dc/terms/title']), t('dc:title value type found in ARC2 index.'));
+    $this->assertTrue(in_array($o, $g->index[$uri]['http://purl.org/dc/terms/title']), t('dc:title value found in ARC2 index.'));
+
+    // Test date in ARC2 RDF index.
+    $o = array (
+      'value'=> date_iso8601($node->created),
+      'type'=> 'literal',
+      'datatype' => 'xsd:dateTime',
+    );
+    $this->assertTrue(in_array($o, $g->index[$uri]['http://purl.org/dc/terms/date']), t('dc:date value found in ARC2 index.'));
+    $o = array (
+      'value'=> date_iso8601($node->created),
+      'type'=> 'literal',
+      'datatype' => 'xsd:dateTime',
+    );
+    $this->assertTrue(in_array($o, $g->index[$uri]['http://purl.org/dc/terms/created']), t('dc:created value found in ARC2 index.'));
+
+    // Test creator (user) in ARC2 RDF index.
+    $expected_user_uri = url('user/' . $node->uid, array('absolute' => TRUE));
+    $o = array (
+      'value'=> $expected_user_uri,
+      'type'=> 'uri',
+    );
+    $this->assertTrue(in_array($o, $g->index[$uri]['http://rdfs.org/sioc/ns#has_creator']), t('sioc:has_creator value found in ARC2 index.'));
   }
 
 }
