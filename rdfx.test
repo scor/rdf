@@ -37,16 +37,20 @@ class RdfxNodeSerializationTestCase extends DrupalWebTestCase {
     $node = $this->drupalGetNodeByTitle($edit["title"]);
     $this->assertTrue($node, t('Node found in database.'));
 
+    // Expected base URI and graph URI.
+    $base_uri = url('', array('absolute' => TRUE));
+    $uri = url('node/' . $node->nid, array('absolute' => TRUE));
+
     // Get the node as RDF.
     $g = rdfx_build_rdf_node($node);
 
     // Inspect the PHP object returned by ARC2.
-    // @todo check type of PHP object returned.
-
+    // Test object class.
+    $this->assertTrue(get_class($g) == 'ARC2_Resource', t('Object is of type ARC2_Resource.'));
     // Test base uri.
-    $this->assertTrue($g->base == url('', array('absolute' => TRUE)), t('Base uri set properly by ARC2.'));
+    $this->assertTrue($g->base == $base_uri, t('Base uri set properly by ARC2.'));
     // Test graph uri.
-    $this->assertTrue($g->uri == url('node/' . $node->nid, array('absolute' => TRUE)), t('Graph uri set properly by ARC2.'));
+    $this->assertTrue($g->uri == $uri, t('Graph uri set properly by ARC2.'));
 
     // Test if core rdf namespaces are present.
     // @todo move this into a dedicate test for namespaces.
@@ -58,6 +62,24 @@ class RdfxNodeSerializationTestCase extends DrupalWebTestCase {
     }
     $this->assertFalse($erroneous_core_ns, t('Core RDF namespaces set properly by ARC2.'));
 
+    // Test RDF types in ARC2 RDF index.
+    $o = array (
+      'value'=> 'http://rdfs.org/sioc/ns#Item',
+      'type'=> 'uri',
+    );
+    $this->assertTrue(in_array($o, $g->index[$uri]['http://www.w3.org/1999/02/22-rdf-syntax-ns#type']), t('sioc:Item type found in ARC2 index.'));
+    $o = array (
+      'value'=> 'http://xmlns.com/foaf/0.1/Document',
+      'type'=> 'uri',
+    );
+    $this->assertTrue(in_array($o, $g->index[$uri]['http://www.w3.org/1999/02/22-rdf-syntax-ns#type']), t('foaf:Document type found in ARC2 index.'));
+
+    // Test title in ARC2 RDF index.
+    $o = array (
+      'value'=> $node->title,
+      'type'=> 'literal',
+    );
+    $this->assertTrue(in_array($o, $g->index[$uri]['http://purl.org/dc/terms/title']), t('dc:title value type found in ARC2 index.'));
   }
 
 }
