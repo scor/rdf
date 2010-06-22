@@ -103,6 +103,14 @@ class RdfxNodeSerializationTestCase extends DrupalWebTestCase {
       'type'=> 'uri',
     );
     $this->assertTrue(in_array($o, $g->index[$uri]['http://rdfs.org/sioc/ns#has_creator']), t('sioc:has_creator value found in ARC2 index.'));
+
+    // Test comment_count in ARC2 RDF index.
+    $o = array (
+      'value'=> $node->comment_count,
+      'type'=> 'literal',
+      'datatype'=> 'xsd:integer',
+    );
+    $this->assertTrue(in_array($o, $g->index[$uri]['http://rdfs.org/sioc/ns#num_replies']), t('sioc:num_replies value found in ARC2 index.'));
   }
 
 }

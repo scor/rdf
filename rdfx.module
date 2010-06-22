@@ -96,6 +96,10 @@ function rdfx_build_rdf_node($node) {
     $user_uri = url('user/' . $node->uid, array('absolute' => TRUE));
     $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping['uid'], $user_uri);
   }
+  // Comment count.
+  if (!empty($node->rdf_mapping['comment_count'])) {
+    $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping['comment_count'], $node->comment_count);
+  }
 
   // Attach the node properties to the document URI.
   $index[$doc_uri] = $doc_props;
