@@ -21,7 +21,13 @@ function rdfx_entity_view($type, $entity) {
   // @todo allow to specify the default format in admin section.
   // @todo support format as argument in url and coneg.
   $ser_conf = array('ns' => rdfx_get_namespaces());
-  $ser = ARC2::getRDFXMLSerializer($ser_conf);
+  $format = ARC2::getPreferredFormat('RDFXML');
+  // Default to RDFXML since people are expecting some non-RDFa RDF at /rdf.
+  // @todo push content negotation at the node/%node level.
+  if ($format == 'HTML') {
+    $format = 'RDFXML';
+  }
+  $ser = ARC2::getSer($format, $ser_conf);
   //$ser = ARC2::getTurtleSerializer($ser_conf);
   drupal_add_http_header('Content-Type', $ser->content_header);
   print $ser->getSerializedIndex($rdf->index);
