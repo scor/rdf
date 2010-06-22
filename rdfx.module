@@ -83,32 +83,74 @@ function rdfx_build_rdf_node($node) {
     switch ($name) {
       // Non field API properties.
       case 'rdftype' :
-         $doc_props['rdf:type'] = $node->rdf_mapping['rdftype'];
-      break;
+        $doc_props['rdf:type'] = $node->rdf_mapping['rdftype'];
+        break;
 
       case 'title' :
         $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $node->$name);
-      break;
+        break;
 
       case 'created' :
         // @todo creation date: the user should be able to opt in/out.
         // @todo modified date: the user should be able to opt in/out.
         $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $node->$name);
-      break;
+        break;
 
       case 'created' :
         $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $node->$name);
-      break;
+        break;
 
       case 'uid' :
         // We need to pass the uri of the sioc:has_creator user.
         $user_uri = url('user/' . $node->uid, array('absolute' => TRUE));
         $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $user_uri);
-      break;
+        break;
 
       case 'comment_count' :
         $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $node->$name);
-      break;
+        break;
+
+      // Additionally, include RDF data from Field API fields.
+      default :
+        if (isset($node->$name) && $field_info = field_info_field($name)) {
+          // Items which will be exported as objects.
+          $items = array();
+          switch ($field_info['type']) {
+            case 'image' :
+              // @todo type object with foaf:Image.
+              // @todo export all images with some metadata (size) about them?
+            case 'file' :
+              // @todo support translatable.
+              foreach ($node->{$name}['und'] as $item) {
+                $items[] = file_create_url($item['uri']);
+              }
+              $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
+              break;
+
+            case 'taxonomy_term_reference' :
+              // @todo support translatable.
+              foreach ($node->{$name}['und'] as $item) {
+                $items[] = url('taxonomy/term/' . $item['tid'], array('absolute' => TRUE));
+              }
+              $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
+              break;
+
+            case 'text_with_summary' :
+            case 'text_long' :
+              // Forces datatype to rdf:XMLLiteral since it's most likely HTML.
+              // @todo check the input format to check whether it's HTML or not.
+              if (!$node->rdf_mapping[$name]['datatype']) {
+                $node->rdf_mapping[$name]['datatype'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral';
+              }
+            case 'text' :
+              // @todo support translatable.
+              foreach ($node->{$name}['und'] as $item) {
+                $items[] = $item['safe_value'];
+              }
+              $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
+              break;
+          }
+        }
     }
   }
 
@@ -131,10 +173,15 @@ function _rdfx_build_arc2_index_p_o($mapping, $data = NULL) {
     // The mapping expresses the relationship between two resources.
     case 'rel':
       foreach ($mapping['predicates'] as $p) {
-        $props[$p][] = array(
-          'value' => $data,
-          'type' => 'uri',
-        );
+        if (!is_array($data)) {
+          $data = array($data);
+        }
+        foreach ($data as $data_item) {
+          $props[$p][] = array(
+            'value' => $data_item,
+            'type' => 'uri',
+          );
+        }
       }
       break;
 
@@ -151,11 +198,16 @@ function _rdfx_build_arc2_index_p_o($mapping, $data = NULL) {
         $data = $callback($data);
       }
       foreach ($mapping['predicates'] as $p) {
-        $props[$p][] = array(
-          'value' => $data,
-          'type' => 'literal',
-          'datatype' => isset($mapping['datatype']) ? $mapping['datatype'] : '',
-        );
+        if (!is_array($data)) {
+          $data = array($data);
+        }
+        foreach ($data as $data_item) {
+          $props[$p][] = array(
+            'value' => $data_item,
+            'type' => 'literal',
+            'datatype' => isset($mapping['datatype']) ? $mapping['datatype'] : '',
+          );
+        }
       }
       break;
   }
