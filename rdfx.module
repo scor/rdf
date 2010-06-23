@@ -40,18 +40,19 @@ function rdfx_init() {
  * Implements hook_menu().
  */
 function rdfx_menu() {
+  // @todo use access RDF data permission instead of access content.
   $items['ns'] = array(
     'title' => 'Site vocabulary',
     'description' => 'RDF description of the site schema.',
     'page callback' => 'drupal_get_form',
-    'access arguments' => array('access RDF data'),
+    'access arguments' => array('access content'),
     'file' => 'rdfx.pages.inc',
   );
   $items['node/%node/rdf'] = array(
     'title' => 'RDF',
     'page callback' => 'rdfx_entity_view',
     'page arguments' => array('node', 1),
-    'access arguments' => array('access RDF data'),
+    'access arguments' => array('access content'),
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
     'file' => 'rdfx.pages.inc',
@@ -60,7 +61,7 @@ function rdfx_menu() {
     'title' => 'RDF',
     'page callback' => 'rdfx_entity_view',
     'page arguments' => array('user', 1),
-    'access arguments' => array('access RDF data'),
+    'access arguments' => array('access content'),
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
     'file' => 'rdfx.pages.inc',
