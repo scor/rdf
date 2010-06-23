@@ -121,25 +121,29 @@ function rdfx_build_rdf_node($node) {
               // @todo export all images with some metadata (size) about them?
             case 'file' :
               // @todo support translatable.
-              foreach ($node->{$name}['und'] as $item) {
-                $items[] = file_create_url($item['uri']);
+              if (isset($node->{$name}['und'])) {
+                foreach ($node->{$name}['und'] as $item) {
+                  $items[] = file_create_url($item['uri']);
+                }
+                $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
               }
-              $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
               break;
 
             case 'taxonomy_term_reference' :
               // @todo support translatable.
-              foreach ($node->{$name}['und'] as $item) {
-                $items[] = url('taxonomy/term/' . $item['tid'], array('absolute' => TRUE));
+              if (isset($node->{$name}['und'])) {
+                foreach ($node->{$name}['und'] as $item) {
+                  $items[] = url('taxonomy/term/' . $item['tid'], array('absolute' => TRUE));
+                }
+                $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
               }
-              $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
               break;
 
             case 'text_with_summary' :
             case 'text_long' :
               // Forces datatype to rdf:XMLLiteral since it's most likely HTML.
               // @todo check the input format to check whether it's HTML or not.
-              if (!$node->rdf_mapping[$name]['datatype']) {
+              if (empty($node->rdf_mapping[$name]['datatype'])) {
                 $node->rdf_mapping[$name]['datatype'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral';
               }
             case 'text' :

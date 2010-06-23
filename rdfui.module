@@ -390,10 +390,9 @@ function _rdfui_validate_terms($form_state, $field_name = '') {
 
   // Validate terms.
   if ($terms = trim($form_state['values'][$field_id])) {
-    $terms = explode("\n",$terms);
+    $terms = rdfui_extract_curies($terms);
     $error = '';
     foreach($terms as $term) {
-      $term = trim($term);
       if (!preg_match(RDFUI_CURIE_REGEX, $term)){
         // @todo Add a page to the drupal docs about CURIE format and adding
         // namespaces. Then add a link to this error that says 'For more info'.
@@ -430,20 +429,25 @@ function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
   $mapping = rdf_mapping_load($object_type, $bundle);
   // Set the RDF type if it is in this form.
   if (isset($form_state['values']['rdf_rdftype'])) {
-    $mapping['rdftype'] = array_unique(explode("\n",$form_state['values']['rdf_rdftype']));;
+    $mapping['rdftype'] = rdfui_extract_curies($form_state['values']['rdf_rdftype']);
   }
   // Set the predicates for the field.
-  $predicates = array_unique(explode("\n",$form_state['values']['rdf_'. $field_name .'_predicates']));
-  $mapping[$field_name]['predicates'] = array_map('trim', $predicates);
-  $mapping[$field_name]['datatype'] = $form_state['values']['rdf_'. $field_name .'_datatype'];
-  $mapping[$field_name]['type'] = $form_state['values']['rdf_'. $field_name .'_type'];
+  $predicates = rdfui_extract_curies($form_state['values']['rdf_'. $field_name .'_predicates']);
+  // Make sure we remove any mapping which does not have any valid predicate.
+  if (empty($predicates)) {
+    unset($mapping[$field_name]);
+  }
+  else {
+    $mapping[$field_name]['predicates'] = $predicates;
+    $mapping[$field_name]['datatype'] = $form_state['values']['rdf_'. $field_name .'_datatype'];
+    $mapping[$field_name]['type'] = $form_state['values']['rdf_'. $field_name .'_type'];
+  }
 
   $mapping_info = array(
     'mapping' => $mapping,
     'type' => $object_type,
     'bundle' => $bundle
   );
-  //dpm($mapping_info);
   rdf_mapping_save($mapping_info);
 }
 
@@ -469,4 +473,18 @@ function theme_rdfui_term_autocomplete($variables) {
   $output .= '</span>';
 
   return $output;
+}
+
+/**
+ * Generates an array of CURIE values from a string.
+ *
+ * Explodes a string with CURIES separated with \n and with each a
+ * value on its own line.
+ */
+function rdfui_extract_curies($string_values) {
+  $list = explode("\n", $string_values);
+  $list = array_map('trim', $list);
+  $list = array_filter($list, 'strlen');
+  $list = array_unique($list);
+  return $list;
 }
