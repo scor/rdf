@@ -156,9 +156,8 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   $field_name = $form['#field']['field_name'];
   $instance = $form['instance'];
   $label = isset($instance['label']) ? $instance['label']['#default_value'] : $instance['field_name'];
-  $object_type = $instance['object_type']['#value'];
-
-  $mapping = rdf_mapping_load($object_type, $instance['bundle']['#value']);
+  $entity_type = $instance['entity_type']['#value'];
+  $mapping = rdf_mapping_load($entity_type, $instance['bundle']['#value']);
 
   $form['rdf'] = array(
     '#type' => 'fieldset',
@@ -268,11 +267,11 @@ function rdfui_admin_rdf_overview_form_submit($form, &$form_state) {
  * Saves RDF mapping for individual field.
  */
 function rdfui_form_field_ui_field_edit_form_submit($form, &$form_state) {
-  $object_type = $form['instance']['object_type']['#value'];
+  $entity_type = $form['instance']['entity_type']['#value'];
   $bundle = $form['instance']['bundle']['#value'];
   $field_name = $form['#field']['field_name'];
 
-  _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name);
+  _rdfui_mapping_save($form_state, $entity_type, $bundle, $field_name);
 }
 
 /**
@@ -423,10 +422,10 @@ function _rdfui_validate_datatype($form_state, $field_name) {
  * Saves the mapping
  */
 
-function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
+function _rdfui_mapping_save($form_state, $entity_type, $bundle, $field_name) {
 
   // @ todo Why would we need this mapping_load? I think we don't
-  $mapping = rdf_mapping_load($object_type, $bundle);
+  $mapping = rdf_mapping_load($entity_type, $bundle);
   // Set the RDF type if it is in this form.
   if (isset($form_state['values']['rdf_rdftype'])) {
     $mapping['rdftype'] = rdfui_extract_curies($form_state['values']['rdf_rdftype']);
@@ -445,7 +444,7 @@ function _rdfui_mapping_save($form_state, $object_type, $bundle, $field_name) {
 
   $mapping_info = array(
     'mapping' => $mapping,
-    'type' => $object_type,
+    'type' => $entity_type,
     'bundle' => $bundle
   );
   rdf_mapping_save($mapping_info);
