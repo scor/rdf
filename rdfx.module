@@ -139,6 +139,26 @@ function rdfx_build_rdf_node($node) {
               }
               break;
 
+            case 'node_reference' :
+              // @todo support translatable.
+              if (isset($node->{$name}['und'])) {
+                foreach ($node->{$name}['und'] as $item) {
+                  $items[] = url('node/' . $item['nid'], array('absolute' => TRUE));
+                }
+                $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
+              }
+              break;
+
+            case 'user_reference' :
+              // @todo support translatable.
+              if (isset($node->{$name}['und'])) {
+                foreach ($node->{$name}['und'] as $item) {
+                  $items[] = url('user/' . $item['uid'], array('absolute' => TRUE));
+                }
+                $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
+              }
+              break;
+
             case 'text_with_summary' :
             case 'text_long' :
               // Forces datatype to rdf:XMLLiteral since it's most likely HTML.
