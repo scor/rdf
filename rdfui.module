@@ -51,43 +51,43 @@ function rdfui_permission() {
 function rdfui_menu() {
   $items = array();
 
-  // Create tabs for all possible bundles.
-  foreach (entity_get_info() as $entity_type => $info) {
-    if ($info['fieldable']) {
-      foreach ($info['bundles'] as $bundle_name => $bundle_info) {
-        if (isset($bundle_info['admin'])) {
-          // Extract informations from the bundle description.
-          $path = $bundle_info['admin']['path'];
-          $bundle_arg = isset($bundle_info['admin']['bundle argument']) ? $bundle_info['admin']['bundle argument'] : $bundle_name;
-          $access = array_intersect_key($bundle_info['admin'], drupal_map_assoc(array('access callback', 'access arguments')));
-          $instance_position = count(explode('/', $path)) + 1;
-
-          if ($entity_type == 'node') {
-            $title = t('Content RDF Mappings');
-            $weight = 50;
-          }
-          elseif ($entity_type == 'comment') {
-            $title = t('Comment RDF Mappings');
-            $weight = 60;
-          }
-          else {
-            $title = t('RDF Mappings');
-            $weight = 50;
-          }
-
-          $items["$path/rdf"] = array(
-            'title' => $title,
-            // @todo Load arguments are not necessary / are cruft, right?
-            //'load arguments' => array($obj_type, $bundle_arg),
-            'page callback' => 'drupal_get_form',
-            'page arguments' => array('rdfui_admin_rdf_overview_form', $entity_type, $bundle_arg, $instance_position),
-            'type' => MENU_LOCAL_TASK,
-            'weight' => $weight,
-          ) + $access;
-        }
-      }
-    }
-  }
+//   // Create tabs for all possible bundles.
+//   foreach (entity_get_info() as $entity_type => $info) {
+//     if ($info['fieldable']) {
+//       foreach ($info['bundles'] as $bundle_name => $bundle_info) {
+//         if (isset($bundle_info['admin'])) {
+//           // Extract informations from the bundle description.
+//           $path = $bundle_info['admin']['path'];
+//           $bundle_arg = isset($bundle_info['admin']['bundle argument']) ? $bundle_info['admin']['bundle argument'] : $bundle_name;
+//           $access = array_intersect_key($bundle_info['admin'], drupal_map_assoc(array('access callback', 'access arguments')));
+//           $instance_position = count(explode('/', $path)) + 1;
+//
+//           if ($entity_type == 'node') {
+//             $title = t('Content RDF Mappings');
+//             $weight = 50;
+//           }
+//           elseif ($entity_type == 'comment') {
+//             $title = t('Comment RDF Mappings');
+//             $weight = 60;
+//           }
+//           else {
+//             $title = t('RDF Mappings');
+//             $weight = 50;
+//           }
+//
+//           $items["$path/rdf"] = array(
+//             'title' => $title,
+//             // @todo Load arguments are not necessary / are cruft, right?
+//             //'load arguments' => array($obj_type, $bundle_arg),
+//             'page callback' => 'drupal_get_form',
+//             'page arguments' => array('rdfui_admin_rdf_overview_form', $entity_type, $bundle_arg, $instance_position),
+//             'type' => MENU_LOCAL_TASK,
+//             'weight' => $weight,
+//           ) + $access;
+//         }
+//       }
+//     }
+//   }
 
   $items['rdfui/datatype/autocomplete'] = array(
     'title' => t('RDF datatype autocomplete'),
