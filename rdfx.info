@@ -11,3 +11,4 @@ files[] = rdfx.inc
 files[] = rdfx.terms.inc
 files[] = rdfx.import.inc
 files[] = rdfx.query.inc
+files[] = rdfx.test

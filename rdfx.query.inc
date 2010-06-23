@@ -16,11 +16,12 @@ function _rdfx_query_ask(&$model, $queries) {
 }
 
 function _rdfx_query_find_literal(&$model, $queries) {
+  $literal = array();
   foreach ($queries as $query) {
     list($s, $p, $o) = $query;
     $triples = _rdfx_query_find_all($model, $s, $p, $o);
     // We create an associative array based on the language code of the
-    // literal. The language codes Drupal uses are specified in iso.inc.
+    // literal. The language codes Drupal uses are specified in includes/iso.inc.
     foreach ($triples as $triple) {
       if ($triple['o_lang'] !== '') {
         // Chinese and Portuguese are the only languages with a >2 letter
