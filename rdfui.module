@@ -89,6 +89,13 @@ function rdfui_menu() {
     }
   }
 
+  $items['rdfui/classes/autocomplete'] = array(
+    'title' => t('RDF classes autocomplete'),
+    'page callback' => 'rdfui_classes_autocomplete',
+    'access arguments' => array('administer RDF field mappings'),
+    'type' => MENU_CALLBACK,
+  );
+
   $items['rdfui/datatype/autocomplete'] = array(
     'title' => t('RDF datatype autocomplete'),
     'page callback' => 'rdfui_datatype_autocomplete',
@@ -286,6 +293,32 @@ function rdfui_form_node_type_form_submit($form, &$form_state) {
 }
 
 /**
+ * Menu callback for classes autocomplete
+ */
+function rdfui_classes_autocomplete($string) {
+  // The user enters a comma-separated list of classes. We only autocomplete
+  // the last class.
+  $classes_typed = drupal_explode_tags($string);
+  $class_last = drupal_strtolower(array_pop($classes_typed));
+
+  $matches = array();
+  if ($class_last != '') {
+    $classes = array();
+    $classes_entered = count($classes_typed) ? implode(', ', $classes_typed) . ', ' : '';
+    $class_tids = rdfx_get_classes();
+    foreach ($class_tids as $class_tid) {
+      $class = rdfx_curie($class_tid) . ', ';
+      if (preg_match("/$class_last/", $class)) {
+        $details = _rdfx_get_term_details($class_tid);
+        $details->curie = $class;
+        $matches[$classes_entered . $class] = theme('rdfui_term_autocomplete', array('term' => $details,));
+      }
+    }
+  }
+  drupal_json_output($matches);
+}
+
+/**
  * Menu callback for datatype autocomplete
  */
 function rdfui_datatype_autocomplete($string) {
@@ -317,8 +350,8 @@ function rdfui_predicates_autocomplete($string) {
   $matches = array();
   if ($predicate_last != '') {
     $predicates = array();
-    $predicate_tids = rdfx_get_properties();
     $predicates_entered = count($predicates_typed) ? implode(', ', $predicates_typed) . ', ' : '';
+    $predicate_tids = rdfx_get_properties();
     foreach ($predicate_tids as $predicate_tid) {
       $predicate = rdfx_curie($predicate_tid) . ', ';
       if (preg_match("/$predicate_last/", $predicate)) {
@@ -330,6 +363,7 @@ function rdfui_predicates_autocomplete($string) {
   }
   drupal_json_output($matches);
 }
+
 
 /**
  * appends the rdf form fields to a fieldset dedicated to a fields.module field
@@ -376,12 +410,11 @@ function rdfui_predicate_fieldset(&$fieldset, $mapping, $field_name, $label) {
  */
 function rdfui_rdftype_fieldset(&$fieldset, $mapping) {
   $fieldset = array(
-    '#type' => 'textarea',
+    '#type' => 'textfield',
+    '#autocomplete_path' => 'rdfui/classes/autocomplete',
     '#title' => t('RDF Type'),
     '#default_value' => empty($mapping['rdftype']) ? '' : implode(", ",$mapping['rdftype']),
     '#description' => t('Enter the RDF type for the bundle here. Classes should be listed in CURIE syntax, with the vocabulary namespace and predicate. For example, sioc:Item.'),
-    '#resizable' => FALSE,
-    '#attributes' => array('class' => array('term-store'))
   );
 
 }
