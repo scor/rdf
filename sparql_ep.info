@@ -1,0 +1,8 @@
+; $Id: $
+name = SPARQL Endpoint
+description = Expose local RDF data in a SPARQL endpoint.
+package = RDF
+dependencies[] = rdfx
+version = VERSION
+core = 7.x
+files[] = sparql_ep.module
