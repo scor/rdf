@@ -27,6 +27,14 @@ function rdfx_entity_view($type, $entity) {
   if ($format == 'HTML') {
     $format = 'RDFXML';
   }
+  // Bug in ARC2 with chrome and safari, where XML is prefered format.
+  if ($format == 'XML') {
+    $format = 'RDFXML';
+  }
+  // Bug in ARC2 with curl, where NULL is prefered format.
+  if (empty($format)) {
+    $format = 'RDFXML';
+  }
   $ser = ARC2::getSer($format, $ser_conf);
   //$ser = ARC2::getTurtleSerializer($ser_conf);
   drupal_add_http_header('Content-Type', $ser->content_header);
