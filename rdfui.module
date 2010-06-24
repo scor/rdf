@@ -309,14 +309,23 @@ function rdfui_datatype_autocomplete($string) {
  * Menu callback for predicates autocomplete
  */
 function rdfui_predicates_autocomplete($string) {
-  $predicates = array();
-  $predicate_tids = rdfx_get_properties();
-  foreach ($predicate_tids as $predicate_tid) {
-    $predicate = rdfx_curie($predicate_tid);
-    if (preg_match("/$string/", $predicate)) {
-      $details = _rdfx_get_term_details($predicate_tid);
-      $details->curie = $predicate;
-      $matches[$predicate] = theme('rdfui_term_autocomplete', array('term' => $details));
+  // The user enters a comma-separated list of predicates. We only autocomplete
+  // the last predicate.
+  $predicates_typed = drupal_explode_tags($string);
+  $predicate_last = drupal_strtolower(array_pop($predicates_typed));
+
+  $matches = array();
+  if ($predicate_last != '') {
+    $predicates = array();
+    $predicate_tids = rdfx_get_properties();
+    $predicates_entered = count($predicates_typed) ? implode(', ', $predicates_typed) . ', ' : '';
+    foreach ($predicate_tids as $predicate_tid) {
+      $predicate = rdfx_curie($predicate_tid) . ', ';
+      if (preg_match("/$predicate_last/", $predicate)) {
+        $details = _rdfx_get_term_details($predicate_tid);
+        $details->curie = $predicate;
+        $matches[$predicates_entered . $predicate] = theme('rdfui_term_autocomplete', array('term' => $details,));
+      }
     }
   }
   drupal_json_output($matches);
@@ -327,12 +336,12 @@ function rdfui_predicates_autocomplete($string) {
  */
 function rdfui_predicate_fieldset(&$fieldset, $mapping, $field_name, $label) {
   $fieldset['rdf_'. $field_name .'_predicates'] = array(
-    '#type' => 'textarea',
+    '#type' => 'textfield',
+    '#autocomplete_path' => 'rdfui/predicates/autocomplete',
     '#title' => t('RDF Predicates'),
-    '#default_value' => empty($mapping[$field_name]['predicates']) ? '' : implode("\n",$mapping[$field_name]['predicates']),
+    '#default_value' => empty($mapping[$field_name]['predicates']) ? '' : implode(", ",$mapping[$field_name]['predicates']),
     '#description' => t('Enter the predicate mappings for @label here. Predicates should be listed in CURIE syntax, with the vocabulary namespace and predicate. For example, foaf:name.', array('@label' => $label)),
     '#resizable' => FALSE,
-    '#attributes' => array('class' => array('term-store'))
   );
 
   // @todo Possibly autocomplete the builtin xsd datatypes, but do not restrict to xsd datatypes.
@@ -356,9 +365,7 @@ function rdfui_predicate_fieldset(&$fieldset, $mapping, $field_name, $label) {
     '#description' => t('If a field contains a literal, such as a string or an integer, then the property attribute should be used. If it contains a url or node reference, the !rel or !rev attribute should be used.', array('@label' => $label, '!rel' => l('rel','http://www.w3.org/TR/html401/struct/links.html#adef-rel'), '!rev' => l('rev','http://www.w3.org/TR/html401/struct/links.html#adef-rev'))),
     '#options' => array('property'=>'property', 'rel'=>'rel', 'rev'=>'rev'),
   );
-
   drupal_add_css(drupal_get_path('module', 'rdfui') .'/css/rdfui.css', 'file');
-  drupal_add_js(drupal_get_path('module', 'rdfui') .'/js/rdfui.js', 'file');
 }
 
 /**
@@ -371,7 +378,7 @@ function rdfui_rdftype_fieldset(&$fieldset, $mapping) {
   $fieldset = array(
     '#type' => 'textarea',
     '#title' => t('RDF Type'),
-    '#default_value' => empty($mapping['rdftype']) ? '' : implode("\n",$mapping['rdftype']),
+    '#default_value' => empty($mapping['rdftype']) ? '' : implode(", ",$mapping['rdftype']),
     '#description' => t('Enter the RDF type for the bundle here. Classes should be listed in CURIE syntax, with the vocabulary namespace and predicate. For example, sioc:Item.'),
     '#resizable' => FALSE,
     '#attributes' => array('class' => array('term-store'))
@@ -476,11 +483,14 @@ function theme_rdfui_term_autocomplete($variables) {
 /**
  * Generates an array of CURIE values from a string.
  *
- * Explodes a string with CURIES separated with \n and with each a
+ * Explodes a string with CURIES separated with ,  and with each a
  * value on its own line.
  */
 function rdfui_extract_curies($string_values) {
-  $list = explode("\n", $string_values);
+  $list = explode(", ", $string_values);
+  $last = array_pop($list);
+  $last = str_replace(',', '', $last);
+  array_push($list, $last);
   $list = array_map('trim', $list);
   $list = array_filter($list, 'strlen');
   $list = array_unique($list);
