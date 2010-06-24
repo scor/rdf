@@ -289,10 +289,12 @@ function rdfx_build_rdf_user($user) {
               }
             case 'text' :
               // @todo support translatable.
-              foreach ($user->{$name}['und'] as $item) {
-                $items[] = $item['safe_value'];
+              if (isset($node->{$name}['und'])) {
+                foreach ($user->{$name}['und'] as $item) {
+                  $items[] = $item['safe_value'];
+                }
+                $doc_props += _rdfx_build_arc2_index_p_o($user->rdf_mapping[$name], $items);
               }
-              $doc_props += _rdfx_build_arc2_index_p_o($user->rdf_mapping[$name], $items);
               break;
           }
         }
