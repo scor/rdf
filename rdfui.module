@@ -182,7 +182,7 @@ function rdfui_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
   $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_field_ui_field_edit_form_validate'));
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_field_ui_field_edit_form_submit'));
 
-  drupal_add_js(array('rdfui'=>array('termRegex'=>RDFUI_CURIE_REGEX)), 'setting');
+//  drupal_add_js(array('rdfui'=>array('termRegex'=>RDFUI_CURIE_REGEX)), 'setting');
 }
 
 /**
@@ -222,7 +222,7 @@ function rdfui_form_node_type_form_alter(&$form, &$form_state) {
   $form['#validate'] = array_merge($form['#validate'], array('rdfui_form_node_type_form_validate'));
   $form['#submit'] = array_merge($form['#submit'], array('rdfui_form_node_type_form_submit'));
 
-  drupal_add_js(array('rdfui'=>array('termRegex'=>RDFUI_CURIE_REGEX)), 'setting');
+//  drupal_add_js(array('rdfui'=>array('termRegex'=>RDFUI_CURIE_REGEX)), 'setting');
 }
 
 
