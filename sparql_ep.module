@@ -86,7 +86,7 @@ function sparql_ep_index_rdf() {
     ->execute()
     ->fetchCol();
 
-  $users = node_load_multiple($uids);
+  $users = user_load_multiple($uids);
   foreach ($users as $user) {
     $rdf = rdfx_build_rdf_user($user);
     $store->insert($rdf->index, $rdf->uri);
