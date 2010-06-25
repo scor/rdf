@@ -594,9 +594,9 @@ function _rdfx_get_vocabulary_details(&$model, $ns_uri) {
   foreach ($query_predicates as $query_element => $predicates) {
     foreach ($predicates as $predicate) {
       $queries[$query_element][] = array($ns_uri, $predicate, '?');
-      if ($uri !== NULL) {
-        $queries[$query_element][] = array($uri, $predicate, '?');
-      }
+//       if ($uri !== NULL) {
+//         $queries[$query_element][] = array($uri, $predicate, '?');
+//       }
     }
     $details[$query_element] = _rdfx_query_find_literal($model, $queries[$query_element]);
   }
