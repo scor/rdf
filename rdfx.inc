@@ -39,7 +39,7 @@
 
   define('PREFIX', NC_NAME);
   define('LOCAL_PART', NC_NAME);
-  define('QNAME', '(?:(?:' . PREFIX .':)?' . LOCAL_PART . ')');
+  define('QNAME', '/(?:(?:' . PREFIX .':)?' . LOCAL_PART . ')/');
 
 /*
  * End XML:RegExp package.
