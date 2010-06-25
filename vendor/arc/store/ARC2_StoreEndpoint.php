@@ -1043,7 +1043,7 @@ class ARC2_StoreEndpoint extends ARC2_Store {
               <option value="rdfxml" ' . ($sel == 'rdfxml' ? $sel_code : '') . '>RDF/XML</option>
               <option value="infos" ' . ($sel == 'infos' ? $sel_code : '') . '>Query Structure</option>
               ' . ($this->allow_sql ? '<option value="sql" ' . ($sel == 'sql' ? $sel_code : '') . '>SQL</option>' : '') . '
-              <option value="htmltab" ' . ($sel == 'htmltab' ? $sel_code : '') . '>HTML Table</option>
+              <option selected=selected value="htmltab" ' . ($sel == 'htmltab' ? $sel_code : '') . '>HTML Table</option>
               <option value="tsv" ' . ($sel == 'tsv' ? $sel_code : '') . '>TSV</option>
             </select>
           </dd>
