@@ -151,7 +151,8 @@ function rdfui_admin_rdf_overview_form($form, &$form_state, $entity_type, $bundl
   $form['field_names'] = array('#type' => 'value', '#value' => array_keys($fields));
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save RDF mapping'));
 
-  drupal_add_js(array('rdfui' => array('termRegex' => RDFUI_CURIE_REGEX)), 'setting');
+// @todo where is RDFUI_CURIE_REGEX declared?
+//  drupal_add_js(array('rdfui' => array('termRegex' => RDFUI_CURIE_REGEX)), 'setting');
 
   return $form;
 }
@@ -263,7 +264,14 @@ function rdfui_form_node_type_form_validate($form, &$form_state) {
  */
 function rdfui_admin_rdf_overview_form_submit($form, &$form_state) {
   $entity_type = $form_state['build_info']['args'][0];
-  $bundle = $form_state['build_info']['args'][1]->type;
+  // @todo somehow $form_state['build_info']['args'][1] is an object for the
+  // node RDF mapping but a string 'user' for the user RDF mapping.
+  if (isset($form_state['build_info']['args'][1]->type)) {
+    $bundle = $form_state['build_info']['args'][1]->type;
+  }
+  else {
+    $bundle = $form_state['build_info']['args'][1];
+  }
   _rdfui_mapping_save($form_state, $entity_type, $bundle, 'title');
 
   foreach ($form_state['values']['field_names'] as $field_name) {
@@ -505,12 +513,12 @@ function _rdfui_mapping_save($form_state, $entity_type, $bundle, $field_name) {
  */
 function theme_rdfui_term_autocomplete($variables) {
   $term = $variables['term'];
-  
+
   $output = '<div class="form-item rdf-term-autocomplete">';
   $output .= $term->curie . ' ';
   $output .= '<p class="rdf-comment-autocomplete">' . $term->comment . '</p>';
   $output .= '</div>';
-  
+
   return $output;
 }
 
