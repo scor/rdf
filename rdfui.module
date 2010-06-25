@@ -63,10 +63,11 @@ function rdfui_menu() {
           $instance_position = count(explode('/', $path)) + 1;
 
           if ($entity_type == 'node') {
-            $title = t('Content RDF Mappings');
-            $weight = 50;
+            $title = t('RDF Mappings');
+            $weight = 2;
           }
           elseif ($entity_type == 'comment') {
+            continue;
             $title = t('Comment RDF Mappings');
             $weight = 60;
           }
