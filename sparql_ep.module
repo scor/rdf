@@ -92,6 +92,21 @@ function sparql_ep_index_rdf() {
     $store->insert($rdf->index, $rdf->uri);
   }
 
+  // Index all the terms ids.
+  $query = db_select('taxonomy_term_data', 't')->extend('PagerDefault')->extend('TableSort');
+//  $query->condition('u.uid', 0, '<>');
+  $uids = $query
+    ->fields('t', array('tid'))
+    ->limit(500)
+    ->execute()
+    ->fetchCol();
+
+  $users = taxonomy_term_load_multiple($uids);
+  foreach ($users as $user) {
+    $rdf = rdfx_build_rdf_term($user);
+    $store->insert($rdf->index, $rdf->uri);
+  }
+
 
   return t('The RDF index of the site has been rebuilt. Browse to the <a href="@endpoint">SPARQL endpoint</a> to query it.', array('@endpoint' => url('sparql')));
 }
