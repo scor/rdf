@@ -93,7 +93,7 @@ function sparql_ep_index_rdf() {
   }
 
 
-  return t('The RDF index of the site has been rebuilt. Browse to the <a href="@endpoint">SPARQL endpoint</a> to query it.', array('@endpoint' => url('sparql_endpoint')));
+  return t('The RDF index of the site has been rebuilt. Browse to the <a href="@endpoint">SPARQL endpoint</a> to query it.', array('@endpoint' => url('sparql')));
 }
 
 function sparql_ep_sparql_endpoint() {
