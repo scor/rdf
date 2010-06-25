@@ -6,7 +6,7 @@
  * User interface for RDF.
  */
 
-define('RDFUI_CURIE_REGEX',"/^[a-zA-Z0-9]+:[a-zA-Z0-9]+$/");
+include_once(drupal_get_path('module', 'rdfx') . '/rdfx.inc');
 
 /**
  * Implements hook_help().
@@ -432,7 +432,7 @@ function _rdfui_validate_terms($form_state, $field_name = '') {
     $terms = rdfui_extract_curies($terms);
     $error = '';
     foreach($terms as $term) {
-      if (!preg_match(RDFUI_CURIE_REGEX, $term)){
+      if (!preg_match(QNAME, $term)){
         // @todo Add a page to the drupal docs about CURIE format and adding
         // namespaces. Then add a link to this error that says 'For more info'.
         $error .= t('Term %term must be in CURIE format.', array('%term'=>$term));
@@ -452,7 +452,7 @@ function _rdfui_validate_datatype($form_state, $field_name) {
 
   // validate datatype
   if ($datatype = trim($form_state['values']['rdf_'. $field_name .'_datatype'])) {
-    if(!preg_match(RDFUI_CURIE_REGEX, $datatype))
+    if(!preg_match(QNAME, $datatype))
       form_set_error('rdf_'. $field_name .'_datatype', t('Datatype %datatype is an invalid format.', array('%datatype'=>$datatype)));
   }
 
