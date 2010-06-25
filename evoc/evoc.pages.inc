@@ -74,5 +74,5 @@ function evoc_import_form_submit($form, &$form_state) {
 
   evoc_import_vocabulary($form_state['values']['ns_uri'], $form_state['values']['prefix']);
 
-  drupal_set_message(t('The @voc has been imported.', array('@voc' => $form_state['values']['prefix'])));
+  drupal_set_message(t('The @voc vocabulary has been imported.', array('@voc' => $form_state['values']['prefix'])));
 }
