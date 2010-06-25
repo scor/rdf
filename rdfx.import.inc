@@ -37,7 +37,7 @@ function rdfx_fetch_rdf($uri, $prefix, $filename = NULL) {
   return _rdfx_parse_rdf($uri);
 }
 
-function &_rdfx_parse_rdf($base_uri) {
+function _rdfx_parse_rdf($base_uri) {
   $namespaces = array();
 
   include_once(drupal_get_path('module', 'rdfx') . '/vendor/arc/ARC2.php');

@@ -41,13 +41,13 @@ function rdfx_init() {
  */
 function rdfx_menu() {
   // @todo use access RDF data permission instead of access content.
-  $items['ns'] = array(
-    'title' => 'Site vocabulary',
-    'description' => 'RDF description of the site schema.',
-    'page callback' => 'drupal_get_form',
-    'access arguments' => array('access content'),
-    'file' => 'rdfx.pages.inc',
-  );
+//   $items['ns'] = array(
+//     'title' => 'Site vocabulary',
+//     'description' => 'RDF description of the site schema.',
+//     'page callback' => 'drupal_get_form',
+//     'access arguments' => array('access content'),
+//     'file' => 'rdfx.pages.inc',
+//   );
   $items['node/%node/rdf'] = array(
     'title' => 'RDF',
     'page callback' => 'rdfx_entity_view',
@@ -178,10 +178,12 @@ function rdfx_build_rdf_node($node) {
               }
             case 'text' :
               // @todo support translatable.
-              foreach ($node->{$name}['und'] as $item) {
-                $items[] = $item['safe_value'];
+              if (isset($node->{$name}['und'])) {
+                foreach ($node->{$name}['und'] as $item) {
+                  $items[] = $item['safe_value'];
+                }
+                $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
               }
-              $doc_props += _rdfx_build_arc2_index_p_o($node->rdf_mapping[$name], $items);
               break;
           }
         }
@@ -287,10 +289,12 @@ function rdfx_build_rdf_user($user) {
               }
             case 'text' :
               // @todo support translatable.
-              foreach ($user->{$name}['und'] as $item) {
-                $items[] = $item['safe_value'];
+              if (isset($node->{$name}['und'])) {
+                foreach ($user->{$name}['und'] as $item) {
+                  $items[] = $item['safe_value'];
+                }
+                $doc_props += _rdfx_build_arc2_index_p_o($user->rdf_mapping[$name], $items);
               }
-              $doc_props += _rdfx_build_arc2_index_p_o($user->rdf_mapping[$name], $items);
               break;
           }
         }

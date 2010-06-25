@@ -1010,7 +1010,8 @@ class ARC2_StoreEndpoint extends ARC2_Store {
   }
   
   function getHTMLDocForm() {
-    $q = $this->p('query') ? htmlspecialchars($this->p('query')) : "SELECT * WHERE {\n  GRAPH ?g { ?s ?p ?o . }\n}\nLIMIT 10";
+    global $default_p;
+    $q = $this->p('query') ? htmlspecialchars($this->p('query')) : "$default_p\nSELECT * WHERE {\n  GRAPH ?g { ?s ?p ?o . }\n}\nLIMIT 10";
     return '
       <form id="sparql-form" action="?" enctype="application/x-www-form-urlencoded" method="' . ($_SERVER['REQUEST_METHOD'] == 'GET' ? 'get' : 'post' ) . '">
         <textarea id="query" name="query" rows="20" cols="80">' . $q . '</textarea>
