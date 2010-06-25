@@ -104,6 +104,7 @@ function sparql_ep_sparql_endpoint() {
   // @temp remove some less used prefixes.
   unset($nss['sioct']);
   unset($nss['rss']);
+  $nss['site'] = url('', array('absolute' => TRUE));
   foreach($nss as $prefix => $ns) {
     $default_p .= "PREFIX $prefix: <" . $ns . ">\n";
   }
