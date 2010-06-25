@@ -264,7 +264,7 @@ function rdfx_build_rdf_user($user) {
               // @todo support translatable.
               if (isset($user->{$name}['und'])) {
                 foreach ($user->{$name}['und'] as $item) {
-                  $items[] = url('user/' . $item['nid'], array('absolute' => TRUE));
+                  $items[] = url('node/' . $item['nid'], array('absolute' => TRUE));
                 }
                 $doc_props += _rdfx_build_arc2_index_p_o($user->rdf_mapping[$name], $items);
               }
