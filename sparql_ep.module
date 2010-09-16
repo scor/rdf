@@ -13,7 +13,7 @@ function sparql_ep_menu() {
   );
   $items['sparql_ep_index'] = array(
     'title' => 'Build RDF index',
-    'page callback' => 'sparql_ep_index_rdf',
+    'page callback' => 'sparql_ep_index_rdf_rdfdb',
     'access arguments' => array('access content'),
   );
   return $items;
@@ -105,6 +105,82 @@ function sparql_ep_index_rdf() {
   foreach ($users as $user) {
     $rdf = rdfx_build_rdf_term($user);
     $store->insert($rdf->index, $rdf->uri);
+  }
+
+
+  return t('The RDF index of the site has been rebuilt. Browse to the <a href="@endpoint">SPARQL endpoint</a> to query it.', array('@endpoint' => url('sparql')));
+}
+
+function sparql_ep_index_rdf_rdfdb() {
+  // Connection detail to the store.
+  // @todo rely on rdfdb.module
+  $rdfdb_connection1 = array(
+    'driver' => 'arc2',
+    'endpoint' => 'http://localhost/arc2_endpoint.php',
+    'apikey' => 'somekey',
+  );
+  $rdfdb_connection2 = array(
+    'driver' => 'virtuoso',
+    'endpoint' => 'http://localhost:18890/sparql',
+    'apikey' => '',
+  );
+  $rdfdb_connection3 = array(
+    'driver' => '4store',
+    'endpoint' => 'http://localhost:8080/sparql/',
+    'apikey' => '',
+  );
+  Rdfdb::addConnectionInfo('default', 'default', $rdfdb_connection3);
+  rdfdb_set_active('defaut');
+
+
+  // Emtpy the store.
+  $rs = rdfdb_select('DISTINCT ?g')->where('GRAPH ?g { ?s ?p ?o . } ')->execute();
+  foreach ($rs['result']['rows'] as $row) {
+    rdfdb_clear($row['g'])->execute();
+  }
+
+  // Index all the nodes which are published.
+  $query = db_select('node', 'n')->extend('PagerDefault')->extend('TableSort');
+  $query->condition('n.status', 1);
+  $nids = $query
+    ->fields('n',array('nid'))
+    ->limit(500)
+    ->execute()
+    ->fetchCol();
+  $nodes = node_load_multiple($nids);
+
+  foreach ($nodes as $node) {
+    $rdf = rdfx_build_rdf_node($node);
+    rdfdb_insert_data($rdf->uri, $rdf->toNtriples($rdf->index))->execute();
+  }
+
+  // Index all the users.
+  $query = db_select('users', 'u')->extend('PagerDefault')->extend('TableSort');
+  $query->condition('u.uid', 0, '<>');
+  $uids = $query
+    ->fields('u', array('uid'))
+    ->limit(500)
+    ->execute()
+    ->fetchCol();
+
+  $users = user_load_multiple($uids);
+  foreach ($users as $user) {
+    $rdf = rdfx_build_rdf_user($user);
+    rdfdb_insert_data($rdf->uri, $rdf->toNtriples($rdf->index))->execute();
+  }
+
+  // Index all the terms.
+  $query = db_select('taxonomy_term_data', 't')->extend('PagerDefault')->extend('TableSort');
+  $uids = $query
+    ->fields('t', array('tid'))
+    ->limit(500)
+    ->execute()
+    ->fetchCol();
+
+  $users = taxonomy_term_load_multiple($uids);
+  foreach ($users as $user) {
+    $rdf = rdfx_build_rdf_term($user);
+    rdfdb_insert_data($rdf->uri, $rdf->toNtriples($rdf->index))->execute();
   }
 
 
