@@ -551,7 +551,7 @@ function _rdfx_fetch_terms(&$model) {
       $query_x = array();
       foreach ($term_uris[$term_type] as $term_uri) {
 
-        $terms[$term_type][$term_uri] = _evoc_query_for_term_description(&$model, $term_uri);
+        $terms[$term_type][$term_uri] = _evoc_query_for_term_description($model, $term_uri);
         foreach ($group['description'] as $property => $queries) {
           foreach ($queries as $predicate_uri => $query_types) {
             foreach ($query_types as $query_type) {
