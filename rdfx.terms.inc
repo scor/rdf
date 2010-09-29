@@ -130,11 +130,13 @@ function _rdfx_save_vocabulary($main_ns, $main_ns_prefix, $vocabulary) {
   // Insert/update the other namespace mappings used in this vocabulary graph.
   if (count($vocabulary['namespaces']) > 0) {
     foreach ($vocabulary['namespaces'] as $prefix => $namespace) {
-      $query = db_merge('rdfx_namespaces')
-        ->key(array('gid' => $gid, 'uri' => $namespace))
-        ->fields(array('uri' => $namespace, 'prefix' => $prefix, 'gid' => $gid))
-        ->update(array('prefix' => $prefix));
-      $status = $query->execute();
+      if ($namespace != $main_ns) {
+        $query = db_merge('rdfx_namespaces')
+          ->key(array('gid' => $gid, 'uri' => $namespace))
+          ->fields(array('uri' => $namespace, 'prefix' => $prefix, 'gid' => $gid))
+          ->updateFields(array('prefix' => $prefix));
+        $status = $query->execute();
+      }
     }
   }
 
