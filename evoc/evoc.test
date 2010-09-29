@@ -16,26 +16,58 @@ class VocabularyImportTestCase extends DrupalWebTestCase {
   }
 
   function setUp() {
-    parent::setUp('rdf', 'rdfx', 'evoc');
+    parent::setUp('rdf', 'rdfx', 'evoc', 'evoc_test');
+    $absolute_url = $this->getAbsoluteUrl('evoc_test/vocabulary_rdf_xml');
+    $this->vocab_uri = "$absolute_url#";
+    $this->prefix = 'test';
+    $this->edit = array(
+      'prefix' => $this->prefix,
+      'ns_uri' => $this->vocab_uri,
+    );
+    $user = $this->drupalCreateUser(array('administer content types'));
+    $this->drupalLogin($user);
+    $this->drupalPost('evoc/import', $this->edit, t('Submit'));
   }
 
   /**
-   * Test that vocabulary is imported.
+   * Functional test for vocabulary import.
+   *
+   * NOTE: This test requires having evoc_test manually enabled. Even when it is
+   * enabled in setUp, the parser fails to intialize. It may be that the headers
+   * aren't sent properly when accessed within site.
    */
   function testImport() {
-    $match = FALSE;
-    $vocab_uri = 'http://localhost/rdf-contrib/evoc_test/vocabulary_rdf_xml#';
-    $prefix = 'test';
-
-    evoc_import_vocabulary($vocab_uri, $prefix);
-    $result = db_query("SELECT uri, prefix FROM {rdfx_namespaces}");
-    foreach ($result as $record) {
-      if ($vocab_uri == $record->uri) {
-       $this->assertEqual($record->prefix, $prefix, t('Main NS has correct prefix.'));
+    $namespaces = array(
+      $this->prefix => $this->vocab_uri,
+      'xml' => 'http://www.w3.org/XML/1998/namespace',
+      'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+      'rdfs' => 'http://www.w3.org/2000/01/rdf-schema#',
+      'owl' => 'http://www.w3.org/2002/07/owl#',
+      'vs' => 'http://www.w3.org/2003/06/sw-vocab-status/ns#',
+      'foaf' => 'http://xmlns.com/foaf/0.1/',
+      'dc' => 'http://purl.org/dc/elements/1.1/',
+    );
+    // Test that namespaces have been imported and placed in correct
+    // vocabulary graph.
+    foreach ($namespaces as $prefix => $namespace) {
+      $records = db_query("SELECT uri, prefix, gid FROM {rdfx_namespaces} WHERE uri='$namespace' AND prefix='$prefix'")->fetchAll();
+      if (count($records) == 1) {
+        $record = $records[0];
+        $this->assertEqual($record->gid, 1, t("Vocabulary $record->prefix is imported as part of correct vocabulary graph."));
       }
       else {
-       $this->assertEqual($record->prefix, '', t('Other namespaces do not have a prefix.'));
+        $this->assert(FALSE, t("Vocabulary $record->prefix is imported ."));
       }
     }
+
+    // Test that user defined prefix was used, per issue #925520.
+    $records = db_query("SELECT uri, prefix, gid FROM {rdfx_namespaces} WHERE prefix='doap'")->fetchAll();
+    $this->assert(count($records) == 0, t('The user defined prefix was used.'));
+  }
+
+  /*
+   * Test that vocabulary is updated.
+   */
+  function testUpdate() {
   }
 }
