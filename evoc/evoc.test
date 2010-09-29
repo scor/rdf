@@ -17,16 +17,8 @@ class VocabularyImportTestCase extends DrupalWebTestCase {
 
   function setUp() {
     parent::setUp('rdf', 'rdfx', 'evoc', 'evoc_test');
-    $absolute_url = $this->getAbsoluteUrl('evoc_test/vocabulary_rdf_xml');
-    $this->vocab_uri = "$absolute_url#";
-    $this->prefix = 'test';
-    $this->edit = array(
-      'prefix' => $this->prefix,
-      'ns_uri' => $this->vocab_uri,
-    );
-    $user = $this->drupalCreateUser(array('administer content types'));
-    $this->drupalLogin($user);
-    $this->drupalPost('evoc/import', $this->edit, t('Submit'));
+    $this->prefix = array();
+    $this->vocab_uri = array();
   }
 
   /**
@@ -37,8 +29,10 @@ class VocabularyImportTestCase extends DrupalWebTestCase {
    * aren't sent properly when accessed within site.
    */
   function testImport() {
+    $format = 'rdf_xml';
+    $this->importVocabulary($format);
     $namespaces = array(
-      $this->prefix => $this->vocab_uri,
+      $this->prefix[$format] => $this->vocab_uri[$format],
       'xml' => 'http://www.w3.org/XML/1998/namespace',
       'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
       'rdfs' => 'http://www.w3.org/2000/01/rdf-schema#',
@@ -69,5 +63,18 @@ class VocabularyImportTestCase extends DrupalWebTestCase {
    * Test that vocabulary is updated.
    */
   function testUpdate() {
+  }
+  
+  protected function importVocabulary($format) {
+    $absolute_url = $this->getAbsoluteUrl("evoc_test/vocabulary_$format");
+    $this->vocab_uri[$format] = "$absolute_url#";
+    $this->prefix[$format] = "test_$format";
+    $this->edit = array(
+      'prefix' => $this->prefix[$format],
+      'ns_uri' => $this->vocab_uri[$format] ,
+    );
+    $user = $this->drupalCreateUser(array('administer content types'));
+    $this->drupalLogin($user);
+    $this->drupalPost('evoc/import', $this->edit, t('Submit'));
   }
 }
