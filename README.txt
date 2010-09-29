@@ -37,8 +37,9 @@ Post bug reports and feature requests to the issue tracking system at:
 
 == Credits ==
 The original RDF module was written for Drupal 6 by Arto Bendiken. It has been
-refactored for Drupal 7 by Stéphane Corlosquet, based on his work with RDF CCK
-and Evoc, which are now part of the main RDF package for Drupal 7.
+refactored for Drupal 7 by Stéphane Corlosquet, Lin Clark and Richard Cyganiak,
+based on the RDF CCK and Evoc modules, which are now part of the main RDF
+package for Drupal 7.
 
 
 == Current maintainers ==
