@@ -25,7 +25,39 @@ function evoc_test_menu() {
   return $items;
 }
 function _vocabulary_n3() {
+  global $base_url;
+  $vocab_uri = $base_url . '/evoc_test/vocabulary_n3#';
   // We fake an n3 vocabulary to feed into the importer.
+  print '@prefix : <' . $vocab_uri . '> .
+     @prefix dc: <http://purl.org/dc/elements/1.1/> .
+     @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+     @prefix owl: <http://www.w3.org/2002/07/owl#> .
+     @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+     @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+     @prefix vs: <http://www.w3.org/2003/06/sw-vocab-status/ns#> .
+    
+    :     a owl:Ontology;
+         dc:description "El vocabulario Descripti\u00F3n of a Project (DOAP, Descripci\u00F3n de un Proyecto), descrito usando RDF Schema de W3C y Web Ontology Language."@es,
+                "The Description of a Project (DOAP) vocabulary, described using W3C RDF Schema and the Web Ontology Language.";
+         dc:title "Description of a Project (DOAP) vocabulary" .
+    
+    :Project     a rdfs:Class;
+         rdfs:isDefinedBy :;
+         rdfs:label "Project"@en,
+                "Proyecto"@es;
+         rdfs:subClassOf foaf:Project,
+                <http://xmlns.com/wordnet/1.6/Project> .
+    
+    :homepage     a rdf:Property,
+                owl:InverseFunctionalProperty;
+         rdfs:comment "El URL de la p\u00E1gina de un proyecto, asociada con exactamente un proyecto."@es,
+                "URL of a project\'s homepage, associated with exactly one project."@en;
+         rdfs:domain <http://usefulinc.com/ns/doap#Project>;
+         rdfs:isDefinedBy :;
+         rdfs:label "homepage"@en,
+                "p\u00E1gina web"@es;
+         rdfs:subPropertyOf foaf:homepage .';
+  return;
 }
 /**
  * Menu callback ( see evoc_test_menu() ).
