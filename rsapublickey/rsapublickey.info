@@ -1,8 +1,0 @@
-; $Id:  $
-name = RSA Public Key field
-description = Defines a field type for storing RSA Public Keys used in FOAF+SSL.
-package = RDF
-version = VERSION
-core = 7.x
-files[] = rsapublickey.module
-files[] = rsapublickey.test
