@@ -408,7 +408,7 @@ function rdfui_predicate_fieldset(&$fieldset, $mapping, $field_name, $label) {
     '#description' => t('If a field contains a literal, such as a string or an integer, then the property attribute should be used. If it contains a url or node reference, the !rel or !rev attribute should be used.', array('@label' => $label, '!rel' => l('rel','http://www.w3.org/TR/html401/struct/links.html#adef-rel'), '!rev' => l('rev','http://www.w3.org/TR/html401/struct/links.html#adef-rev'))),
     '#options' => array('property'=>'property', 'rel'=>'rel', 'rev'=>'rev'),
   );
-  drupal_add_css(drupal_get_path('module', 'rdfui') .'/css/rdfui.css', 'file');
+  drupal_add_css(drupal_get_path('module', 'rdfui') .'/rdfui.css', 'file');
 }
 
 /**
