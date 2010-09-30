@@ -18,6 +18,13 @@ function evoc_menu() {
     'access arguments' => array('administer content types'),
     'file' => 'evoc.pages.inc',
   );
+  $items['evoc/import_core'] = array(
+    'title' => 'Import core RDF vocabularies',
+    'description' => 'Perform a batch import of the vocabularies used by core.',
+    'page callback' => 'evoc_import_core',
+    'access arguments' => array('administer content types'),
+    'file' => 'evoc.pages.inc',
+  );
 
   return $items;
 }

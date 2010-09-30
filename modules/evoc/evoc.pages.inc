@@ -15,15 +15,31 @@ function evoc_import() {
 
 
 function evoc_import_form($form_state) {
+  $namespaces = rdfx_get_namespaces();
+  if (count($namespaces) == 0) {
+    $namespace_msg = '<p>No RDF vocabularies have been imported. It is recommended that you ' . l('import the core RDF vocabularies', 'evoc/import_core') . '.</p>';
+  }
+  else {
+    $table_variables = array();
+    foreach ($namespaces as $prefix => $namespace) {
+      $table_variables['rows'][] = array($prefix, $namespace);
+    }
+    $namespace_msg = theme('table', $table_variables);
+  }
   $form['help'] = array(
-    '#markup' => 'This form allows you to import external RDF vocabularies into your site.
-    These can later be used by other modules such as <a href="http://drupal.org/project/rdf">RDF UI</a> or <a href="http://drupal.org/project/neologism">Neologism</a>. Popular vocabularies include:<br />
-    dc : http://purl.org/dc/terms/<br />
-    foaf : http://xmlns.com/foaf/0.1/<br />
-    sioc : http://rdfs.org/sioc/ns#<br />
-    skos : http://www.w3.org/2008/05/skos#<br />
-    doap : http://usefulinc.com/ns/doap#<br />
-    ',
+    '#type' => 'item',
+    '#markup' => '<p>This form allows you to import external RDF vocabularies into your site.
+    These can later be used by other modules such as <a href="http://drupal.org/project/rdf">RDF UI</a> or <a href="http://drupal.org/project/neologism">Neologism</a>.</p>',
+  );
+  $form['namespace_box'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Imported vocabularies',
+    '#collapsible' => TRUE, 
+    '#collapsed' => TRUE,
+  );
+  $form['namespace_box']['namespaces'] = array(
+    '#type' => 'item',
+    '#markup' => $namespace_msg,
   );
   $form['prefix'] = array(
     '#type' => 'textfield',
@@ -75,4 +91,69 @@ function evoc_import_form_submit($form, &$form_state) {
   evoc_import_vocabulary($form_state['values']['ns_uri'], $form_state['values']['prefix']);
 
   drupal_set_message(t('The @voc vocabulary has been imported.', array('@voc' => $form_state['values']['prefix'])));
+}
+
+/**
+ * Provide a callback for batch importing the vocabularies used in core.
+ */
+function evoc_import_core() {
+  $vocabularies = rdf_rdf_namespaces();
+  $operations = array();
+  foreach ($vocabularies as $prefix => $namespace_uri) {
+    $operations[] = array(
+      '_evoc_install_batch_process',
+      array(
+        $namespace_uri,
+        $prefix,
+      ),
+    );
+  }
+  $batch = array(
+    'title' => t('Downloading RDF vocabularies'),
+    'init_message' => t('Preparing to download the core RDF vocabularies'),
+    'operations' => $operations,
+    'finished' => '_evoc_install_batch_finished',
+    'file' => drupal_get_path('module', 'evoc') . '/evoc.pages.inc',
+  );
+  batch_set($batch);
+  batch_process('evoc/import');
+}
+
+/*
+ * Evoc Install batch process.
+ */
+function _evoc_install_batch_process($namespace_uri, $prefix, &$context) {
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['message'] = t('Downloading %prefix', array('%prefix' => $prefix));
+    $context['finished'] = 0;
+    return;
+  }
+
+  evoc_import_vocabulary($namespace_uri, $prefix);
+
+  // Store result for post-processing in the finished callback.
+  $context['results'][] = $prefix;
+
+  // Update our progress information.
+  $context['sandbox']['progress']++;
+
+  $context['finished'] = 1;
+}
+
+/**
+ * Evoc Install batch 'finished' callback.
+ */
+function _evoc_install_batch_finished($success, $results, $operations) {
+  if ($success) {
+    drupal_set_message(t('The RDF vocabularies ' . implode(', ', $results) . ' have been imported.'));
+    return;
+  }
+  else {
+    drupal_set_message(t('An error occurred and processing did not complete.'), 'error');
+    $message = format_plural(count($results), '1 item successfully processed:', '@count items successfully processed:');
+    $message .= theme('item_list', array('items' => $results));
+    drupal_set_message($message);
+    return;
+  }
 }
