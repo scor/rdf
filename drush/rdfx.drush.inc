@@ -24,9 +24,10 @@
 function rdfx_drush_command() {
   $items = array();
 
-  $items['rdfx-arc2'] = array(
+  $items['rdf-download'] = array(
     'callback' => 'rdfx_drush_arc2_download',
     'description' => dt('Downloads the required ARC2 library from http://arc.semsol.org/download'),
+    'aliases' => array('rdfdl'),
     'arguments' => array(
       'path' => dt('Optional. A path to the rdfx module. If omitted Drush will use the default location.'),
     ),
@@ -48,7 +49,7 @@ function rdfx_drush_command() {
  */
 function rdfx_drush_help($section) {
   switch ($section) {
-    case 'drush:rdfx-arc2':
+    case 'drush:rdf-download':
       return dt("Downloads the required ARC2 library from http://arc.semsol.org/download. Include the optional path.");
   }
 }
