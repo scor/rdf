@@ -70,20 +70,28 @@ function rdfx_drush_arc2_download() {
   if ($args[0]) {
     $path = $args[0];
   }
+  elseif(module_exists('libraries')) {
+    $path = 'sites/all/libraries';
+
+    // Create the path if it does not exist.
+    if (!is_dir($path)) {
+      drush_op('mkdir', $path);
+      drush_log(dt('Directory @path was created', array('@path' => $path)), 'notice');
+    }
+  }
   else {
-    $path = drupal_get_path('module', 'rdfx');
+    $path = drupal_get_path('module', 'rdfx') . '/vendor';
+    // Create vendor directory if it does not exist yet.
+    if (!drush_op('chdir', $path)) {
+      drush_op('mkdir', $path);
+    }
   }
   drush_op('chdir', $path);
-  // Create vendor directory if it does not exist yet.
-  if (!drush_op('chdir', 'vendor')) {
-    drush_op('mkdir', 'vendor');
-    drush_op('chdir', 'vendor');
-  }
   // Download and extract library.
   if (drush_shell_exec('wget http://code.semsol.org/source/arc.tar.gz') &&
       drush_shell_exec('tar zxvf arc.tar.gz') &&
       drush_shell_exec('rm arc.tar.gz')) {
-    drush_log(dt('The latest ARC2 library has been downloaded to @path/vendor', array('@path' => $path)), 'success');
+    drush_log(dt('The latest ARC2 library has been downloaded to @path', array('@path' => $path)), 'success');
   }
   else {
     drush_log(dt('Drush was unable to download the ARC2 library to @path', array('@path' => $path)), 'error');
