@@ -81,8 +81,8 @@ function rdfx_drush_arc2_download() {
   }
   else {
     $path = drupal_get_path('module', 'rdfx') . '/vendor';
-    // Create vendor directory if it does not exist yet.
-    if (!drush_op('chdir', $path)) {
+    // Create the vendor directory if it does not exist yet.
+    if (!is_dir($path)) {
       drush_op('mkdir', $path);
     }
   }
