@@ -15,17 +15,24 @@ function evoc_import() {
 
 
 function evoc_import_form($form_state) {
-  $namespaces = rdfx_get_namespaces();
+  // Retrieves all the imported namespaces from the database.
+  $query = db_select('rdfx_vocabulary_graphs', 'g');
+  $query->fields('n', array('prefix', 'uri'));
+  $query->join('rdfx_namespaces', 'n', 'g.main_ns = n.nsid');
+  $query->orderBy('n.prefix');
+  $namespaces = $query->execute()->fetchAll();
+
   if (count($namespaces) == 0) {
     $namespace_msg = '<p>No RDF vocabularies have been imported. It is recommended that you ' . l('import the core RDF vocabularies', 'evoc/import_core') . '.</p>';
   }
   else {
     $table_variables = array();
-    foreach ($namespaces as $prefix => $namespace) {
-      $table_variables['rows'][] = array($prefix, $namespace);
+    foreach ($namespaces as $namespace) {
+      $table_variables['rows'][] = array($namespace->prefix, $namespace->uri);
     }
     $namespace_msg = theme('table', $table_variables);
   }
+
   $form['help'] = array(
     '#type' => 'item',
     '#markup' => '<p>This form allows you to import external RDF vocabularies into your site.
@@ -34,7 +41,7 @@ function evoc_import_form($form_state) {
   $form['namespace_box'] = array(
     '#type' => 'fieldset',
     '#title' => 'Imported vocabularies',
-    '#collapsible' => TRUE, 
+    '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
   $form['namespace_box']['namespaces'] = array(
@@ -157,3 +164,4 @@ function _evoc_install_batch_finished($success, $results, $operations) {
     return;
   }
 }
+
