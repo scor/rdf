@@ -20,7 +20,7 @@ function rdfx_schema() {
         'not null' => TRUE,
       ),
       'main_ns' => array(
-        'description' => 'The {rdfx_namespaces}.nid for this vocabulary.',
+        'description' => 'The {rdfx_namespaces}.nsid for this vocabulary.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
