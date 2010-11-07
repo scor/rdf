@@ -29,6 +29,22 @@ function evoc_menu() {
   return $items;
 }
 
+/**
+ * Implements hook_menu().
+ */
+function evoc_rdf_namespaces() {
+  $ns_mappings = array();
+  $query = db_select('rdfx_vocabulary_graphs', 'g');
+  $query->fields('n', array('prefix', 'uri'));
+  $query->join('rdfx_namespaces', 'n', 'g.main_ns = n.nsid');
+  $query->orderBy('n.prefix');
+  $namespaces = $query->execute()->fetchAll();
+  foreach ((array) $namespaces as $namespace) {
+    $ns_mappings[$namespace->prefix] = $namespace->uri;
+  }
+  return $ns_mappings;
+}
+
 /*
  * Import function for the evoc module.
  */
