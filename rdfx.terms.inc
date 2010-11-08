@@ -55,7 +55,13 @@ function rdfx_get_namespaces() {
  */
 function rdfx_rdf_namespaces() {
   //$rdf_namespaces = db_query('SELECT prefix, uri FROM {rdfx_namespaces}')->fetchAllKeyed();
-  //return $rdf_namespaces;
+
+  // Adds some additionnal common namespaces which core does not include.
+  return array(
+    'owl'      => 'http://www.w3.org/2002/07/owl#',
+    'rdf'      => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+    'rss'      => 'http://purl.org/rss/1.0/',
+  );
 }
 
 /**
