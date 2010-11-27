@@ -8,12 +8,6 @@
  */
 
 /**
- * Namespace for the site vocabulary, used to generate local RDF properties and
- * classes for fields and content types.
- */
-define('SITE_VOCABULARY_URI', url('ns', array('absolute' => TRUE, 'fragment' => ' ')));
-
-/**
  * Path to the ARC2 PHP library.
  */
 if (module_exists('libraries')) {
