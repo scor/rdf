@@ -5,3 +5,4 @@ package = RDF
 version = VERSION
 core = 7.x
 files[] = rdfui.module
+m
